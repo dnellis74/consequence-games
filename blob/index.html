@@ -191,6 +191,64 @@
     backdrop-filter: blur(6px);
   }
   #home:hover, #home:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.55); outline: none; }
+  #originBtn {
+    pointer-events: auto;
+    cursor: pointer;
+    display: block;
+    margin: 1.1rem auto 0;
+    background: none;
+    border: 0;
+    color: var(--muted);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+    padding: 0.6rem;
+    min-height: 44px;
+  }
+  #originBtn:hover, #originBtn:focus-visible { color: var(--cyan); outline: none; }
+  #origin {
+    position: fixed; inset: 0; z-index: 5;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(2, 6, 12, 0.82);
+    backdrop-filter: blur(6px);
+    cursor: auto;
+    padding: 1rem;
+  }
+  #origin.open { display: flex; }
+  #origin .panel {
+    max-width: 34rem; width: 100%;
+    max-height: 88vh; overflow-y: auto;
+    background: rgba(6, 16, 24, 0.96);
+    border: 1px solid rgba(62, 240, 208, 0.3);
+    border-radius: 4px;
+    padding: 1.6rem 1.5rem 1.3rem;
+    font-family: "Gill Sans", "Trebuchet MS", "Segoe UI", sans-serif;
+    color: var(--ui);
+    line-height: 1.6;
+    font-size: 1rem;
+    text-align: left;
+  }
+  #origin h2 {
+    font-size: 1.5rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 0.9rem;
+    text-shadow: 0 0 14px rgba(62, 240, 208, 0.45);
+  }
+  #origin p { margin-bottom: 0.85rem; color: rgba(212, 255, 246, 0.88); }
+  #origin .close {
+    cursor: pointer;
+    margin-top: 0.4rem;
+    border: 1px solid rgba(62, 240, 208, 0.45);
+    background: transparent;
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.7rem 1rem; min-height: 44px; border-radius: 2px;
+  }
+  #origin .close:hover, #origin .close:focus-visible { color: var(--mint); border-color: rgba(127,255,234,.8); outline: none; }
   #mute {
     position: fixed;
     bottom: 1.1rem;
@@ -233,6 +291,18 @@
     <div id="hint">Click to start</div>
     <div id="final" style="display:none"></div>
     <button type="button" id="share" style="display:none">Challenge friend</button>
+    <button type="button" id="originBtn">Where this came from</button>
+  </div>
+</div>
+<div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
+  <div class="panel">
+    <h2 id="originTitle">Where this came from</h2>
+    <p>The first time I played this kind of game was Surround, one of the cartridges that launched with the Atari 2600 in 1977. Two lines on a screen, each leaving a wall behind it, and whoever crashed first lost.</p>
+    <p>Surround was a home version of Blockade, a 1976 arcade game from Gremlin. Twenty years later the same idea showed up on Nokia phones as Snake, and a whole generation played it on a number pad.</p>
+    <p>All of those games ran on a grid and turned at right angles, because that is what the hardware and the buttons allowed. Blob asks what the idea looks like on a touchscreen. The grid is gone. The blob moves in curves, slows down for sharp turns, and follows your finger. You aren't the line anymore. You're what it's chasing.</p>
+    <p>The score is the same one Blockade used: how long you last.</p>
+    <p style="color: var(--muted); font-size: 0.9rem">Dave Nellis, <a href="/" style="color: var(--teal)">consequence.games</a></p>
+    <button type="button" class="close" id="originClose">Back to the blob</button>
   </div>
 </div>
 <a id="home" href="/">&larr; More games</a>
@@ -593,11 +663,34 @@
     hintEl.textContent = 'Click anywhere else to retry';
   }
 
+  const originEl = document.getElementById('origin');
+  const originBtn = document.getElementById('originBtn');
+  const originClose = document.getElementById('originClose');
+  function openOrigin(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    originEl.classList.add('open');
+    originClose.focus();
+  }
+  function closeOrigin(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    originEl.classList.remove('open');
+    originBtn.focus();
+  }
+  originBtn.addEventListener('click', openOrigin);
+  originClose.addEventListener('click', closeOrigin);
+  originEl.addEventListener('click', (e) => { if (e.target === originEl) closeOrigin(e); });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && originEl.classList.contains('open')) closeOrigin(e);
+  });
+
   function tryStart(e) {
     if (e && e.target && (e.target === muteBtn || muteBtn.contains(e.target))) return;
     if (e && e.target && (e.target === shareBtn || shareBtn.contains(e.target))) return;
-    if (e && e.target && e.target.closest && e.target.closest('#home')) return;
+    if (e && e.target && e.target.closest && e.target.closest('#home, #origin, #originBtn')) return;
+    if (originEl.classList.contains('open')) return;
+    if (e && e.type === 'keydown' && e.key === 'Escape') return;
     unlockAudio();
+    if (e && e.type === 'keydown' && e.target && e.target.tagName === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
     if (state === STATE.START || state === STATE.OVER) startGame();
   }
 

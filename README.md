@@ -1,6 +1,6 @@
 # Consequence Games
 
-Coming soon site for [consequence.games](https://consequence.games/)
+Site for [consequence.games](https://consequence.games/)
 
 Games where choices matter, and the dice fall where they may.
 
@@ -8,7 +8,9 @@ Games where choices matter, and the dice fall where they may.
 
 Static site, no build step. Deployed on Vercel.
 
-- `index.html` — the coming soon page
+- `index.html` — home page, list of games
+- `about.html` — about page (served at `/about`)
+- `blob/index.html` — BLOB, the first game (served at `/blob`)
 - `consequence_banner.png` — logo / banner artwork
 - `favicon.png` — die crop used as favicon
 

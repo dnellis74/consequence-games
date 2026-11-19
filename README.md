@@ -11,6 +11,17 @@ Static site, no build step. Deployed on Vercel.
 - `index.html` — home page, list of games
 - `about.html` — about page (served at `/about`)
 - `blob/index.html` — BLOB, the first game (served at `/blob`)
+- `contact.html` — contact form (served at `/contact`)
+- `api/contact.js` — Vercel function that emails form submissions via Resend
+
+## Contact form setup
+
+The form posts to `/api/contact`, which sends mail through [Resend](https://resend.com).
+The recipient address and API key are Vercel environment variables, not code:
+
+- `RESEND_API_KEY` (required)
+- `CONTACT_TO` (required) — where messages go
+- `CONTACT_FROM` (optional) — a sender on a domain verified in Resend. Without it, Resend's test sender is used, which only delivers to the Resend account owner's address.
 - `consequence_banner.png` — logo / banner artwork
 - `favicon.png` — die crop used as favicon
 

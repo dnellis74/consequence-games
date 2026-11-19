@@ -4,18 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>About · Consequence Games</title>
-  <meta name="description" content="Consequence Games is coming soon. Games where choices matter, and the dice fall where they may.">
+  <meta name="description" content="Who makes Consequence Games, and where Blob came from.">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://consequence.games/about">
-  <meta property="og:title" content="Consequence Games">
-  <meta property="og:description" content="Coming soon. Games where choices matter, and the dice fall where they may.">
+  <meta property="og:title" content="About · Consequence Games">
+  <meta property="og:description" content="Who makes Consequence Games, and where Blob came from.">
   <meta property="og:image" content="https://consequence.games/consequence_banner.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Consequence Games">
-  <meta name="twitter:description" content="Coming soon. Games where choices matter, and the dice fall where they may.">
-  <meta name="twitter:image" content="https://consequence.games/consequence_banner.png">
   <meta name="theme-color" content="#1b2a6b">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,19 +128,97 @@
     }
     footer a{color:var(--navy);text-decoration:none;font-weight:600}
     footer a:hover{text-decoration:underline}
+
+    .prose{
+      width:100%;
+      max-width:640px;
+      margin:36px auto 0;
+      text-align:left;
+      font-size:17.5px;
+      line-height:1.65;
+      color:var(--ink);
+    }
+    .prose h2{
+      font-family: "Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+      font-size:clamp(32px,4.5vw,42px);
+      line-height:1.05;
+      color:var(--navy-dark);
+      font-weight:700;
+      margin:44px 0 14px;
+    }
+    .prose h2:first-child{margin-top:0}
+    .prose p{margin:0 0 16px}
+    .prose ul{margin:0 0 16px;padding-left:1.2em}
+    .prose li{margin:0 0 6px}
+    .prose a{color:var(--navy);font-weight:600}
+    .sig{
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:13px;
+      color:var(--navy);
+      margin-top:8px;
+    }
+    label{display:block;font-weight:600;font-size:15px;margin:0 0 6px;color:var(--ink)}
+    input, textarea{
+      width:100%;
+      font:inherit;
+      font-size:16px;
+      color:var(--ink);
+      border:1px solid #cfd3e0;
+      border-radius:6px;
+      padding:11px 12px;
+      background:#fff;
+    }
+    input:focus, textarea:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy)}
+    textarea{min-height:170px;resize:vertical}
+    .field{margin:0 0 18px}
+    .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+    button.send{
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:15px;
+      background:var(--navy);
+      color:#fff;
+      border:0;
+      border-radius:6px;
+      padding:13px 22px;
+      min-height:44px;
+      cursor:pointer;
+    }
+    button.send:hover{background:var(--navy-dark)}
+    button.send:disabled{opacity:.6;cursor:wait}
+    .status-msg{margin-top:14px;min-height:1.5em;font-size:15.5px}
+    .status-msg.ok{color:#1f6b3a}
+    .status-msg.err{color:#a3252f}
   </style>
 </head>
 <body>
   <main>
-    <a href="/" aria-label="Consequence Games home"><img class="logo" src="/consequence_banner.png" alt="Consequence Games — a giant die falling toward two startled adventurers opening a treasure chest" width="3603" height="1381"></a>
+    <a href="/" aria-label="Consequence Games home"><img class="logo" src="/consequence_banner.png" alt="Consequence Games, a giant die falling toward two startled adventurers opening a treasure chest" width="3603" height="1381"></a>
     <div class="rule" aria-hidden="true"></div>
-    <p class="eyebrow">Coming soon</p>
+    <p class="eyebrow">About</p>
     <h1>Something is about<br>to fall.</h1>
-    <p class="lede">We&rsquo;re building <strong>games where choices matter</strong> &mdash; and the dice fall where they may. First title in the works. Check back soon.</p>
-    <div class="status"><span class="dot" aria-hidden="true"></span> In development &middot; consequence.games</div>
+    <div class="prose">
+      <h2>Builder's Statement</h2>
+      <p>I'm Dave Nellis, a software engineer in Salida, Colorado. I learned what computers were for on an Apple II, mapping dungeons in The Bard's Tale and Might and Magic on graph paper, and I have been building small things ever since.</p>
+      <p>Consequence Games is where I put the games I make. The rule for this site is that your time is worth more than my numbers. In practice that means:</p>
+      <ul>
+        <li>No accounts and no ads.</li>
+        <li>Every game loads fast and starts with one tap.</li>
+        <li>A round is short and ends clearly. When you stop, you lose nothing.</li>
+        <li>No streaks to protect, no timers that call you back, and nothing that rewards you for staying longer than you meant to.</li>
+      </ul>
+      <p>The name comes from the idea I find most interesting in games and in economics: every choice has a cost, and the cost often arrives later. The games here are small, but they try to make that cost visible.</p>
+      <p>If one of them takes a minute of your day, I want that minute to have been worth it.</p>
+
+      <h2>Where Blob came from</h2>
+      <p>Blob started as a question: what would Snake feel like for someone who has only ever played games on a touchscreen?</p>
+      <p>Snake is older than most people think. It goes back to Blockade, a 1976 arcade game from Gremlin where two players steered lines around a grid in right-angle turns, and the winner was whoever lasted longest without crashing. In 1997 Nokia put Snake on the 6110 phone, and a generation played it on a number pad.</p>
+      <p>Blob keeps the parts that matter: a line that grows, a trail that kills, and a score that is just how long you survived. It drops the grid and the buttons. The blob moves in curves, slows down to take sharp turns, and follows your finger. You aren't the snake anymore. You're what it's chasing.</p>
+      <p><a href="/blob">Play Blob</a> &middot; <a href="/contact">Get in touch</a></p>
+      <p class="sig">]dave_</p>
+    </div>
   </main>
   <footer>
-    <a href="/">Games</a> &middot; <a href="/about">About</a> &middot; &copy; 2026 Consequence Games
+    <a href="/">Games</a> &middot; <a href="/about">About</a> &middot; <a href="/contact">Contact</a> &middot; &copy; 2026 Consequence Games
   </footer>
 </body>
 </html>

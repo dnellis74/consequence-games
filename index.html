@@ -17,6 +17,9 @@
   <meta name="twitter:description" content="Coming soon. Games where choices matter, and the dice fall where they may.">
   <meta name="twitter:image" content="https://consequence.games/consequence_banner.png">
   <meta name="theme-color" content="#1b2a6b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600;700;800&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root{
       --navy:#1b2a6b;
@@ -62,19 +65,21 @@
       opacity:.9;
     }
     .eyebrow{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      letter-spacing:.18em;
+      /* Pixel font matching the "]games_" wordmark in the logo */
+      font-family: "Silkscreen", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing:.04em;
       text-transform:uppercase;
-      font-size:12px;
+      font-size:14px;
       font-weight:700;
       color:var(--navy);
       margin:0 0 14px;
     }
     h1{
-      font-family: Georgia, "Times New Roman", serif;
-      font-size:clamp(38px,6vw,64px);
+      /* Blackletter matching the "Consequence" wordmark in the logo */
+      font-family: "Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+      font-size:clamp(48px,7.5vw,84px);
       line-height:1.02;
-      letter-spacing:-.02em;
+      letter-spacing:0;
       margin:0;
       color:var(--navy-dark);
       font-weight:700;
@@ -95,8 +100,9 @@
       border:1px solid var(--line);
       border-radius:999px;
       padding:9px 14px 9px 12px;
-      font-size:14px;
-      font-weight:600;
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:13px;
+      font-weight:400;
       color:var(--navy-dark);
       background:#fbfbfe;
     }

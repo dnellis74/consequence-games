@@ -198,7 +198,20 @@
     <h1>Send a message.</h1>
     <div class="prose">
       <p>Bug reports, ideas, high scores you don't believe, or anything else. I read everything.</p>
-      <form id="contact" novalidate>
+      <p>Email me at <a id="mail" href="#">dnellis74 [at] gmail [dot] com</a></p>
+      <script>
+      // Address is assembled at runtime so it is not sitting in the HTML for scrapers.
+      (function () {
+        var u = ['dnellis', '74'].join(''), d = ['gmail', 'com'].join('.');
+        var a = document.getElementById('mail');
+        a.href = 'mailto:' + u + '@' + d + '?subject=' + encodeURIComponent('consequence.games');
+        a.textContent = u + '@' + d;
+      })();
+      </script>
+      <!-- TODO: contact form is wired to /api/contact (Resend) but disabled until
+           RESEND_API_KEY and CONTACT_TO are set in Vercel. To enable, remove the
+           `hidden` attribute below and drop the mailto paragraph above. -->
+      <form id="contact" novalidate hidden>
         <div class="field">
           <label for="name">Name <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
           <input id="name" name="name" type="text" autocomplete="name" maxlength="100">

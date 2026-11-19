@@ -1,3 +1,7 @@
+// TODO: not live yet. The /contact page shows a mailto link instead, and the
+// form is hidden. To turn this on: sign up for Resend, set RESEND_API_KEY and
+// CONTACT_TO in Vercel, then un-hide the form in contact.html.
+//
 // Contact form handler (Vercel Node function).
 //
 // The recipient address and the email API key live in Vercel environment

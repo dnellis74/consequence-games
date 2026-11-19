@@ -16,6 +16,8 @@ Static site, no build step. Deployed on Vercel.
 
 ## Contact form setup
 
+TODO: not enabled yet. `/contact` currently shows a mailto link; the form is hidden until the env vars below are set.
+
 The form posts to `/api/contact`, which sends mail through [Resend](https://resend.com).
 The recipient address and API key are Vercel environment variables, not code:
 

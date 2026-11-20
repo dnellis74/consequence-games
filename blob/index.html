@@ -192,23 +192,30 @@
   }
   #home:hover, #home:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.55); outline: none; }
   #originBtn {
-    pointer-events: auto;
+    position: fixed;
+    bottom: 1.1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
     cursor: pointer;
-    display: block;
-    margin: 1.1rem auto 0;
-    background: none;
-    border: 0;
+    white-space: nowrap;
+    border: 1px solid rgba(62, 240, 208, 0.28);
+    background: rgba(4, 16, 24, 0.55);
     color: var(--muted);
     font-family: "Gill Sans", "Trebuchet MS", sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    text-decoration: underline;
-    text-underline-offset: 0.3em;
-    padding: 0.6rem;
-    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 2px;
+    backdrop-filter: blur(6px);
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
   }
-  #originBtn:hover, #originBtn:focus-visible { color: var(--cyan); outline: none; }
+  #originBtn:hover, #originBtn:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.55); background: rgba(8, 28, 36, 0.75); outline: none; }
+  /* narrow phones: three buttons will not fit on one row, so this one moves to the top */
+  @media (max-width: 560px) {
+    #originBtn { bottom: auto; top: 1.1rem; }
+  }
   #origin {
     position: fixed; inset: 0; z-index: 5;
     display: none;
@@ -291,7 +298,6 @@
     <div id="hint">Click to start</div>
     <div id="final" style="display:none"></div>
     <button type="button" id="share" style="display:none">Challenge friend</button>
-    <button type="button" id="originBtn">Where this came from</button>
   </div>
 </div>
 <div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
@@ -305,6 +311,7 @@
     <button type="button" class="close" id="originClose">Back to the blob</button>
   </div>
 </div>
+<button type="button" id="originBtn">Where this came from</button>
 <a id="home" href="/">&larr; More games</a>
 <button type="button" id="mute" aria-label="Toggle sound" title="Toggle sound">Sound on</button>
 <script>
@@ -327,7 +334,11 @@
     wobbleAmp: 0.12,        // radius pulse amplitude
     wobbleHz: 2.4,
     squash: 0.18,           // velocity-based squash
-    startSafeDist: 120,     // spawn head this far from cursor
+    startSafeDist: 120,     // spawn head this far from cursor (scaled, see below)
+    refSize: 800,           // screen size (px, shorter side) the speeds were tuned for
+    minScale: 0.5,          // smallest speed scale on small screens
+    warmupSecs: 5,          // blob starts slower and reaches full speed over this time
+    warmupStart: 0.55,      // starting fraction of full speed
     cornerMinFrac: 0.2,     // speed cap at a full reversal, as a fraction of maxSpeed
     cornerCurve: 0.6,       // <1 makes moderate turns brake harder
     brakeRate: 7,           // how fast speed drops to the corner cap (per second)
@@ -389,7 +400,7 @@
   shareBtn.addEventListener('click', doShare);
   shareBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 
-  let W = 0, H = 0, dpr = 1;
+  let W = 0, H = 0, dpr = 1, SCALE = 1;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth;
@@ -399,6 +410,8 @@
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // phones get proportionally slower speeds so crossing the screen takes about as long as on desktop
+    SCALE = Math.max(CFG.minScale, Math.min(1, Math.min(W, H) / CFG.refSize));
   }
   window.addEventListener('resize', resize);
   resize();
@@ -515,7 +528,7 @@
 
   function modulateMusic(spd) {
     if (!audioCtx || !lfo || muted || !musicDesired) return;
-    const u = Math.max(0, Math.min(1, spd / CFG.maxSpeed));
+    const u = Math.max(0, Math.min(1, spd / (CFG.maxSpeed * SCALE)));
     const rate = 0.55 + u * 1.55;
     lfo.frequency.setTargetAtTime(rate, audioCtx.currentTime, 0.12);
     if (pulse) {
@@ -615,8 +628,9 @@
     const cy = pointer.on ? pointer.y : H * 0.4;
     // spawn away from cursor
     let ang = Math.random() * Math.PI * 2;
-    head.x = cx + Math.cos(ang) * CFG.startSafeDist;
-    head.y = cy + Math.sin(ang) * CFG.startSafeDist;
+    const safe = Math.max(CFG.startSafeDist, Math.min(W, H) * 0.4);
+    head.x = cx + Math.cos(ang) * safe;
+    head.y = cy + Math.sin(ang) * safe;
     // keep on screen
     head.x = Math.max(40, Math.min(W - 40, head.x));
     head.y = Math.max(40, Math.min(H - 40, head.y));
@@ -639,6 +653,7 @@
     finalEl.style.display = 'none';
     shareBtn.style.display = 'none';
     document.getElementById('home').style.display = 'none';
+    originBtn.style.display = 'none';
     brandEl.style.display = '';
   }
 
@@ -660,6 +675,7 @@
     shareBtn.textContent = 'Challenge friend';
     shareBtn.style.display = 'inline-block';
     document.getElementById('home').style.display = '';
+    originBtn.style.display = '';
     hintEl.textContent = 'Click anywhere else to retry';
   }
 
@@ -719,11 +735,14 @@
     // corner braking: the further the target is from the current heading,
     // the lower the speed cap, so sharp turns force a slowdown
     const spd0 = Math.hypot(head.vx, head.vy);
-    let cornerCap = CFG.maxSpeed;
+    const ramp = CFG.warmupStart + (1 - CFG.warmupStart) * Math.min(1, elapsed / CFG.warmupSecs);
+    const maxSpd = CFG.maxSpeed * SCALE * ramp;
+    const accel = CFG.accel * SCALE * ramp;
+    let cornerCap = maxSpd;
     if (spd0 > 1) {
       const cosA = (head.vx * ux + head.vy * uy) / spd0;
       const sharp = Math.pow((1 - cosA) * 0.5, CFG.cornerCurve); // 0 straight, 1 reversal
-      cornerCap = CFG.maxSpeed * (1 - (1 - CFG.cornerMinFrac) * sharp);
+      cornerCap = maxSpd * (1 - (1 - CFG.cornerMinFrac) * sharp);
       if (spd0 > cornerCap) {
         const target = cornerCap + (spd0 - cornerCap) * Math.exp(-CFG.brakeRate * dt);
         head.vx *= target / spd0;
@@ -732,14 +751,14 @@
     }
 
     // seek / accelerate toward pointer
-    head.vx += ux * CFG.accel * CFG.seekStrength * dt;
-    head.vy += uy * CFG.accel * CFG.seekStrength * dt;
+    head.vx += ux * accel * CFG.seekStrength * dt;
+    head.vy += uy * accel * CFG.seekStrength * dt;
 
     let spd = Math.hypot(head.vx, head.vy);
-    if (spd > CFG.maxSpeed) {
-      head.vx = (head.vx / spd) * CFG.maxSpeed;
-      head.vy = (head.vy / spd) * CFG.maxSpeed;
-      spd = CFG.maxSpeed;
+    if (spd > maxSpd) {
+      head.vx = (head.vx / spd) * maxSpd;
+      head.vy = (head.vy / spd) * maxSpd;
+      spd = maxSpd;
     }
 
     // slight friction
@@ -759,16 +778,16 @@
 
     // jelly wobble + squash
     const wob = 1 + Math.sin(shimmer * CFG.wobbleHz * Math.PI * 2) * CFG.wobbleAmp;
-    const squash = 1 - Math.min(1, spd / CFG.maxSpeed) * CFG.squash;
+    const squash = 1 - Math.min(1, spd / maxSpd) * CFG.squash;
     head.r = CFG.headBaseR * wob;
 
     // trail
     const last = trail[trail.length - 1];
     if (!last || dist(head.x, head.y, last.x, last.y) >= CFG.trailSpacing) {
-      trail.push({ x: head.x, y: head.y, w: widthForSpeed(spd) });
+      trail.push({ x: head.x, y: head.y, w: widthForSpeed(spd / SCALE) });
     } else {
       // update last width toward current for smooth taper
-      last.w += (widthForSpeed(spd) - last.w) * 0.25;
+      last.w += (widthForSpeed(spd / SCALE) - last.w) * 0.25;
     }
 
     modulateMusic(spd);

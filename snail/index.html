@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Blob v Snail · Consequence Games</title>
+<meta name="description" content="A snail is after you. Grab the loot: it makes you richer, and heavier.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://consequence.games/snail">
+<meta property="og:title" content="Blob v Snail">
+<meta property="og:description" content="A snail is after you. How rich can you get before it catches you?">
+<meta property="og:image" content="https://consequence.games/consequence_banner.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root {
+    --ink-deep: #02060c;
+    --ink: #061018;
+    --ink-mid: #0a1c24;
+    --cyan: #3ef0d0;
+    --teal: #1ab8a0;
+    --mint: #a8ffe8;
+    --glow: #7fffea;
+    --ui: #d4fff6;
+    --muted: #5e8f88;
+    --danger: #ff6b7a;
+    --glow-soft: rgba(62, 240, 208, 0.45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 35%, #0c2430 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(14, 60, 70, 0.45) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 85% 20%, rgba(8, 40, 55, 0.5) 0%, transparent 45%),
+      linear-gradient(165deg, var(--ink-mid) 0%, var(--ink) 40%, var(--ink-deep) 100%);
+    font-family: "Avenir Next Condensed", "Futura Condensed Medium", "DIN Condensed",
+      "Arial Narrow", "Helvetica Neue Condensed", Impact, sans-serif;
+    color: var(--ui);
+    cursor: none;
+    touch-action: none;
+  }
+  /* Film-grain depth — no external assets */
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: overlay;
+  }
+  body::after {
+    content: "";
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse 75% 65% at 50% 45%, transparent 40%, rgba(0, 4, 12, 0.75) 100%);
+  }
+  canvas {
+    display: block;
+    width: 100%; height: 100%;
+    background: transparent;
+    position: relative; z-index: 0;
+  }
+  #hud {
+    position: fixed; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 2;
+  }
+  #hud.playing { justify-content: flex-start; padding-top: 1.25rem; }
+  #score {
+    font-size: clamp(0.85rem, 2vw, 1.1rem);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    text-shadow: 0 0 12px rgba(62, 240, 208, 0.35);
+  }
+  #hud.playing #score { opacity: 1; }
+  #overlay {
+    text-align: center;
+    max-width: min(92vw, 28rem);
+    padding: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  #overlay.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #overlay.hidden { display: none; }
+  #brand {
+    font-size: clamp(4rem, 16vw, 7.5rem);
+    letter-spacing: 0.2em;
+    line-height: 0.88;
+    color: var(--cyan);
+    text-shadow:
+      0 0 12px rgba(168, 255, 232, 0.9),
+      0 0 36px rgba(62, 240, 208, 0.7),
+      0 0 80px rgba(26, 184, 160, 0.45),
+      0 0 120px rgba(14, 90, 100, 0.3);
+    margin-bottom: 0.9rem;
+    animation: brandPulse 2.8s ease-in-out infinite;
+  }
+  @keyframes brandPulse {
+    0%, 100% { filter: brightness(1); letter-spacing: 0.2em; text-shadow:
+      0 0 12px rgba(168, 255, 232, 0.9),
+      0 0 36px rgba(62, 240, 208, 0.7),
+      0 0 80px rgba(26, 184, 160, 0.45); }
+    50% { filter: brightness(1.2); letter-spacing: 0.26em; text-shadow:
+      0 0 18px rgba(168, 255, 232, 1),
+      0 0 48px rgba(62, 240, 208, 0.85),
+      0 0 100px rgba(26, 184, 160, 0.55); }
+  }
+  #msg {
+    font-family: "Gill Sans", "Trebuchet MS", "Segoe UI", sans-serif;
+    font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    line-height: 1.55;
+    color: var(--ui);
+    margin-bottom: 1.4rem;
+    text-shadow: 0 0 24px rgba(62, 240, 208, 0.25);
+  }
+  #hint {
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--teal);
+    animation: hintFade 1.6s ease-in-out infinite;
+  }
+  @keyframes hintFade {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+  #final {
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+    letter-spacing: 0.14em;
+    color: var(--glow);
+    margin-bottom: 0.55rem;
+    text-shadow:
+      0 0 20px rgba(127, 255, 234, 0.65),
+      0 0 48px rgba(255, 107, 122, 0.25);
+  }
+  #overlay.gameover #msg {
+    color: rgba(212, 255, 246, 0.85);
+  }
+  #overlay.gameover #final {
+    color: var(--mint);
+  }
+  #share {
+    pointer-events: auto;
+    cursor: pointer;
+    margin: 0.4rem auto 1.1rem;
+    border: 1px solid rgba(62, 240, 208, 0.45);
+    background: rgba(4, 16, 24, 0.6);
+    color: var(--cyan);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.1rem;
+    border-radius: 2px;
+    min-height: 44px;
+    text-shadow: 0 0 10px rgba(62, 240, 208, 0.3);
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+  }
+  #share:hover, #share:focus-visible {
+    color: var(--mint);
+    border-color: rgba(127, 255, 234, 0.8);
+    background: rgba(8, 28, 36, 0.8);
+    outline: none;
+  }
+  #home {
+    position: fixed;
+    bottom: 1.1rem;
+    left: 1.1rem;
+    z-index: 3;
+    cursor: pointer;
+    border: 1px solid rgba(62, 240, 208, 0.28);
+    background: rgba(4, 16, 24, 0.55);
+    color: var(--muted);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.55rem 0.75rem;
+    border-radius: 2px;
+    backdrop-filter: blur(6px);
+  }
+  #home:hover, #home:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.55); outline: none; }
+  #originBtn {
+    position: fixed;
+    bottom: 1.1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid rgba(62, 240, 208, 0.28);
+    background: rgba(4, 16, 24, 0.55);
+    color: var(--muted);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.75rem;
+    border-radius: 2px;
+    backdrop-filter: blur(6px);
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+  }
+  #originBtn:hover, #originBtn:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.55); background: rgba(8, 28, 36, 0.75); outline: none; }
+  /* narrow phones: three buttons will not fit on one row, so this one moves to the top */
+  @media (max-width: 560px) {
+    #originBtn { bottom: auto; top: 1.1rem; }
+  }
+  #origin {
+    position: fixed; inset: 0; z-index: 5;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(2, 6, 12, 0.82);
+    backdrop-filter: blur(6px);
+    cursor: auto;
+    padding: 1rem;
+  }
+  #origin.open { display: flex; }
+  #origin .panel {
+    max-width: 34rem; width: 100%;
+    max-height: 88vh; overflow-y: auto;
+    background: rgba(6, 16, 24, 0.96);
+    border: 1px solid rgba(62, 240, 208, 0.3);
+    border-radius: 4px;
+    padding: 1.6rem 1.5rem 1.3rem;
+    font-family: "Gill Sans", "Trebuchet MS", "Segoe UI", sans-serif;
+    color: var(--ui);
+    line-height: 1.6;
+    font-size: 1rem;
+    text-align: left;
+  }
+  #origin h2 {
+    font-size: 1.5rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 0.9rem;
+    text-shadow: 0 0 14px rgba(62, 240, 208, 0.45);
+  }
+  #origin p { margin-bottom: 0.85rem; color: rgba(212, 255, 246, 0.88); }
+  #origin .close {
+    cursor: pointer;
+    margin-top: 0.4rem;
+    border: 1px solid rgba(62, 240, 208, 0.45);
+    background: transparent;
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.7rem 1rem; min-height: 44px; border-radius: 2px;
+  }
+  #origin .close:hover, #origin .close:focus-visible { color: var(--mint); border-color: rgba(127,255,234,.8); outline: none; }
+  #mute {
+    position: fixed;
+    bottom: 1.1rem;
+    right: 1.1rem;
+    z-index: 3;
+    pointer-events: auto;
+    cursor: pointer;
+    border: 1px solid rgba(62, 240, 208, 0.28);
+    background: rgba(4, 16, 24, 0.55);
+    color: var(--muted);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.75rem;
+    border-radius: 2px;
+    backdrop-filter: blur(6px);
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+    text-shadow: 0 0 10px rgba(62, 240, 208, 0.2);
+  }
+  #mute:hover, #mute:focus-visible {
+    color: var(--cyan);
+    border-color: rgba(62, 240, 208, 0.55);
+    background: rgba(8, 28, 36, 0.75);
+    outline: none;
+  }
+  #mute.muted {
+    color: rgba(94, 143, 136, 0.55);
+    border-color: rgba(94, 143, 136, 0.25);
+  }
+
+  #brand { font-size: clamp(2.6rem, 11vw, 5.6rem); letter-spacing: 0.12em; }
+  #brand .v { font-size: 0.5em; letter-spacing: 0; color: var(--muted); vertical-align: middle; }
+  #score { color: #d9c27a; text-shadow: 0 0 12px rgba(230, 190, 90, 0.35); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="score">$0</div>
+  <div id="overlay" class="visible">
+    <div id="brand">BLOB <span class="v">v</span> SNAIL</div>
+    <p id="msg">A snail is after you. Grab the loot: it makes you richer, and heavier.</p>
+    <div id="hint">Tap to start</div>
+    <div id="final" style="display:none"></div>
+    <button type="button" id="share" style="display:none">Challenge friend</button>
+  </div>
+</div>
+<div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
+  <div class="panel">
+    <h2 id="originTitle">Where this came from</h2>
+    <p>In 2014, on the Rooster Teeth podcast, Gavin Free asked a question: would you take $10 million and immortality if an immortal snail followed you for the rest of your life, and its touch killed you? It turned into a meme, the immortal snail, also called the snail assassin.</p>
+    <p>Snails were chasing people long before that. In the margins of 13th and 14th century manuscripts, scribes drew armored knights fighting snails, and the knights were often losing. One theory, from the scholar Lilian Randall, is that the snails stood for Lombard moneylenders.</p>
+    <p>This game puts the two together. Money piles up while you run, and everything you pick up makes you slower. The snail never speeds up. It just never stops, and its trail never dries.</p>
+    <p>Blob v Snail is a variant of <a href="/blob" style="color: var(--teal)">Blob</a>, my touchscreen take on Snake.</p>
+    <p style="color: var(--muted); font-size: 0.9rem">Dave Nellis, <a href="/" style="color: var(--teal)">consequence.games</a></p>
+    <button type="button" class="close" id="originClose">Back to the snail</button>
+  </div>
+</div>
+<button type="button" id="originBtn">Where this came from</button>
+<a id="home" href="/">&larr; More games</a>
+<button type="button" id="mute" aria-label="Toggle sound" title="Toggle sound">Sound on</button>
+<script>
+(() => {
+  // ── Tuning knobs ──────────────────────────────────────────────
+  // Speeds are in px/s at a screen whose shorter side is refSize; smaller
+  // screens scale down (floor minScale) so a phone feels like a laptop.
+  const CFG = {
+    refSize: 800,
+    minScale: 0.5,
+
+    // player (the blob)
+    playerSpeed: 340,       // top speed with empty pockets
+    playerAccel: 1500,
+    playerR: 12,
+    arriveDist: 36,         // slows down this close to your finger
+    weightDrag: 0.055,      // speed = playerSpeed / (1 + weightDrag * carried weight)
+
+    // snail
+    snailSpeedFrac: 0.42,   // snail speed as a fraction of the empty-pockets player speed
+    snailTurnRate: 2.4,     // rad/s, so it curves instead of snapping
+    snailR: 15,
+    snailGrowthPerMin: 0,   // optional: speed-up per minute (0 = never speeds up)
+    catchPad: 0.8,          // fraction of (playerR + snailR) that counts as a touch
+
+    // slime trail
+    trailWidth: 12,         // px, blocks the player
+    trailSpacing: 6,        // px between trail points
+    gridCell: 40,           // spatial hash cell size for trail collision
+
+    // score
+    baseRate: 10,           // $ per second with nothing carried
+
+    // loot
+    maxLoot: 5,
+    lootEvery: 2.2,         // seconds between spawns
+    lootR: 9,
+    spawnClear: 70,         // keep spawns this far from trail, snail and player
+  };
+
+  // Loot kinds. Each pickup is pushed onto `carried` as its own item so a
+  // later version can drop items one at a time.
+  const LOOT = {
+    coin:  { weight: 1,   rate: 6,  chance: 0.62, label: 'coin' },
+    gem:   { weight: 0.6, rate: 14, chance: 0.23, label: 'gem' },
+    ingot: { weight: 4,   rate: 32, chance: 0.15, label: 'gold bar' },
+  };
+
+  // ── DOM / canvas ──────────────────────────────────────────────
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const hud = document.getElementById('hud');
+  const scoreEl = document.getElementById('score');
+  const overlay = document.getElementById('overlay');
+  const msgEl = document.getElementById('msg');
+  const hintEl = document.getElementById('hint');
+  const finalEl = document.getElementById('final');
+  const brandEl = document.getElementById('brand');
+  const muteBtn = document.getElementById('mute');
+  const shareBtn = document.getElementById('share');
+  const homeEl = document.getElementById('home');
+  const originEl = document.getElementById('origin');
+  const originBtn = document.getElementById('originBtn');
+  const originClose = document.getElementById('originClose');
+  const SHARE_URL = 'https://consequence.games/snail';
+
+  let W = 0, H = 0, dpr = 1, SCALE = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    SCALE = Math.max(CFG.minScale, Math.min(1, Math.min(W, H) / CFG.refSize));
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ── Pointer ───────────────────────────────────────────────────
+  const pointer = { x: W * 0.5, y: H * 0.5, on: false };
+  function setPointer(e) {
+    const t = e.touches ? e.touches[0] : e;
+    if (!t) return;
+    pointer.x = t.clientX;
+    pointer.y = t.clientY;
+    pointer.on = true;
+  }
+  window.addEventListener('pointermove', setPointer, { passive: true });
+  window.addEventListener('touchmove', (e) => { e.preventDefault(); setPointer(e); }, { passive: false });
+  window.addEventListener('touchstart', (e) => { setPointer(e); }, { passive: true });
+
+  // ── Audio ─────────────────────────────────────────────────────
+  let audioCtx = null, gainMaster = null, muted = false, musicDesired = false;
+  let lfo = null, pulse = null;
+  function ensureAudio() {
+    if (audioCtx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = new AC();
+    gainMaster = audioCtx.createGain();
+    gainMaster.gain.value = 0.0001;
+    gainMaster.connect(audioCtx.destination);
+    const d1 = audioCtx.createOscillator(); d1.type = 'sine'; d1.frequency.value = 41;
+    const d2 = audioCtx.createOscillator(); d2.type = 'sine'; d2.frequency.value = 61.7;
+    const df = audioCtx.createBiquadFilter(); df.type = 'lowpass'; df.frequency.value = 150;
+    const dm = audioCtx.createGain(); dm.gain.value = 0.08;
+    d1.connect(df); d2.connect(df); df.connect(dm); dm.connect(gainMaster);
+    d1.start(); d2.start();
+    pulse = audioCtx.createOscillator(); pulse.type = 'triangle'; pulse.frequency.value = 82;
+    const pg = audioCtx.createGain(); pg.gain.value = 0;
+    const pf = audioCtx.createBiquadFilter(); pf.type = 'lowpass'; pf.frequency.value = 380;
+    pulse.connect(pf); pf.connect(pg); pg.connect(gainMaster); pulse.start();
+    lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.5;
+    const lg = audioCtx.createGain(); lg.gain.value = 0.03;
+    lfo.connect(lg); lg.connect(pg.gain); lfo.start();
+  }
+  function unlockAudio() {
+    ensureAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function setAudioPlaying(on) {
+    musicDesired = on;
+    if (!audioCtx || !gainMaster) return;
+    const t = audioCtx.currentTime;
+    gainMaster.gain.cancelScheduledValues(t);
+    gainMaster.gain.setTargetAtTime(on && !muted ? 0.546 : 0.0001, t, 0.1);
+  }
+  function syncMuteUi() {
+    muteBtn.textContent = muted ? 'Sound off' : 'Sound on';
+    muteBtn.classList.toggle('muted', muted);
+    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+  }
+  function toggleMute(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    unlockAudio();
+    muted = !muted;
+    syncMuteUi();
+    setAudioPlaying(musicDesired);
+  }
+  muteBtn.addEventListener('pointerdown', toggleMute);
+  muteBtn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+
+  // tension rises as the snail gets closer
+  function modulateMusic(closeness) {
+    if (!audioCtx || !lfo || muted || !musicDesired) return;
+    const t = audioCtx.currentTime;
+    lfo.frequency.setTargetAtTime(0.5 + closeness * 2.2, t, 0.2);
+    pulse.frequency.setTargetAtTime(80 + closeness * 40, t, 0.3);
+  }
+  function blip(freq, dur, type, vol) {
+    if (!audioCtx || muted) return;
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(); o.type = type; o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(freq * 1.5, t + dur * 0.5);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  function playPickup(kind) {
+    if (kind === 'ingot') { blip(330, 0.35, 'triangle', 0.16); }
+    else if (kind === 'gem') { blip(990, 0.25, 'sine', 0.12); }
+    else { blip(760, 0.18, 'square', 0.06); }
+  }
+  function playCatch() {
+    if (!audioCtx || muted) return;
+    setAudioPlaying(false);
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.7);
+    const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+    o.connect(f); f.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + 0.85);
+  }
+
+  // ── Game state ────────────────────────────────────────────────
+  const STATE = { START: 0, PLAY: 1, OVER: 2 };
+  let state = STATE.START;
+  const player = { x: 0, y: 0, vx: 0, vy: 0 };
+  const snail = { x: 0, y: 0, heading: 0 };
+  let trail = [];          // snail slime points {x,y}
+  let grid = new Map();    // "cx,cy" -> [segment index]
+  let loot = [];           // on the field {kind,x,y,born}
+  let carried = [];        // picked up items {kind,weight,rate,at}
+  let money = 0, elapsed = 0, lootTimer = 0, shimmer = 0;
+  let floaters = [];       // "+$" popups {x,y,text,t}
+
+  const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+
+  // totals are derived from the carried list, never stored, so dropping
+  // an item later is just removing it from the array
+  function carriedWeight() { let w = 0; for (const c of carried) w += c.weight; return w; }
+  function carriedRate() { let r = 0; for (const c of carried) r += c.rate; return r; }
+  function playerMaxSpeed() { return CFG.playerSpeed * SCALE / (1 + CFG.weightDrag * carriedWeight()); }
+  function snailSpeed() {
+    return CFG.playerSpeed * SCALE * CFG.snailSpeedFrac * (1 + CFG.snailGrowthPerMin * elapsed / 60);
+  }
+
+  // ── Trail + spatial hash ──────────────────────────────────────
+  function cellKey(cx, cy) { return cx + ',' + cy; }
+  function addSegment(i) {
+    const a = trail[i], b = trail[i + 1];
+    const pad = CFG.trailWidth * 0.5;
+    const c = CFG.gridCell;
+    const x0 = Math.floor((Math.min(a.x, b.x) - pad) / c), x1 = Math.floor((Math.max(a.x, b.x) + pad) / c);
+    const y0 = Math.floor((Math.min(a.y, b.y) - pad) / c), y1 = Math.floor((Math.max(a.y, b.y) + pad) / c);
+    for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) {
+      const k = cellKey(cx, cy);
+      let arr = grid.get(k);
+      if (!arr) { arr = []; grid.set(k, arr); }
+      arr.push(i);
+    }
+  }
+  function pushTrail(x, y) {
+    trail.push({ x, y });
+    if (trail.length >= 2) addSegment(trail.length - 2);
+  }
+  function nearbySegments(x, y, r) {
+    const c = CFG.gridCell, out = new Set();
+    const x0 = Math.floor((x - r) / c), x1 = Math.floor((x + r) / c);
+    const y0 = Math.floor((y - r) / c), y1 = Math.floor((y + r) / c);
+    for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) {
+      const arr = grid.get(cellKey(cx, cy));
+      if (arr) for (const i of arr) out.add(i);
+    }
+    return out;
+  }
+  function closestOnSeg(px, py, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 < 1e-8 ? 0 : ((px - a.x) * dx + (py - a.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return { x: a.x + t * dx, y: a.y + t * dy };
+  }
+  function distToTrail(x, y, r) {
+    let best = Infinity;
+    for (const i of nearbySegments(x, y, r)) {
+      const c = closestOnSeg(x, y, trail[i], trail[i + 1]);
+      best = Math.min(best, dist(x, y, c.x, c.y));
+    }
+    return best;
+  }
+  // slime is a wall for the player: push the blob back out and cancel
+  // velocity into the slime
+  function resolveTrail() {
+    const minD = CFG.playerR + CFG.trailWidth * 0.5;
+    for (let pass = 0; pass < 3; pass++) {
+      let moved = false;
+      for (const i of nearbySegments(player.x, player.y, minD + 2)) {
+        const c = closestOnSeg(player.x, player.y, trail[i], trail[i + 1]);
+        let dx = player.x - c.x, dy = player.y - c.y;
+        let d = Math.hypot(dx, dy);
+        if (d >= minD) continue;
+        if (d < 1e-4) { dx = -(trail[i + 1].y - trail[i].y); dy = trail[i + 1].x - trail[i].x; d = Math.hypot(dx, dy) || 1; }
+        const nx = dx / d, ny = dy / d;
+        player.x = c.x + nx * minD;
+        player.y = c.y + ny * minD;
+        const vn = player.vx * nx + player.vy * ny;
+        if (vn < 0) { player.vx -= vn * nx; player.vy -= vn * ny; }
+        moved = true;
+      }
+      if (!moved) break;
+    }
+  }
+
+  // ── Loot ──────────────────────────────────────────────────────
+  function pickKind() {
+    let r = Math.random();
+    for (const k in LOOT) { r -= LOOT[k].chance; if (r <= 0) return k; }
+    return 'coin';
+  }
+  function spawnLoot() {
+    const m = 40;
+    for (let tries = 0; tries < 30; tries++) {
+      const x = m + Math.random() * (W - 2 * m);
+      const y = m + 30 + Math.random() * (H - 2 * m - 30);
+      if (dist(x, y, player.x, player.y) < CFG.spawnClear * 1.5) continue;
+      if (dist(x, y, snail.x, snail.y) < CFG.spawnClear) continue;
+      if (distToTrail(x, y, CFG.spawnClear) < CFG.spawnClear * 0.6) continue;
+      if (loot.some((l) => dist(x, y, l.x, l.y) < 50)) continue;
+      loot.push({ kind: pickKind(), x, y, born: shimmer });
+      return;
+    }
+  }
+
+  // ── Flow ──────────────────────────────────────────────────────
+  function resetPlay() {
+    player.x = W * 0.5; player.y = H * 0.55; player.vx = 0; player.vy = 0;
+    // snail starts in the corner farthest from the player
+    const corners = [[40, 70], [W - 40, 70], [40, H - 40], [W - 40, H - 40]];
+    corners.sort((a, b) => dist(b[0], b[1], player.x, player.y) - dist(a[0], a[1], player.x, player.y));
+    snail.x = corners[0][0]; snail.y = corners[0][1];
+    snail.heading = Math.atan2(player.y - snail.y, player.x - snail.x);
+    trail = []; grid = new Map(); loot = []; carried = []; floaters = [];
+    pushTrail(snail.x, snail.y);
+    money = 0; elapsed = 0; lootTimer = 0.6;
+    if (!pointer.on) { pointer.x = player.x; pointer.y = player.y; }
+  }
+
+  function fmtMoney(v) { return '$' + Math.floor(v).toLocaleString('en-US'); }
+
+  function startGame() {
+    unlockAudio();
+    setAudioPlaying(true);
+    resetPlay();
+    state = STATE.PLAY;
+    hud.classList.add('playing');
+    overlay.classList.remove('visible', 'gameover');
+    setTimeout(() => overlay.classList.add('hidden'), 400);
+    finalEl.style.display = 'none';
+    shareBtn.style.display = 'none';
+    homeEl.style.display = 'none';
+    originBtn.style.display = 'none';
+    brandEl.style.display = '';
+  }
+
+  function endGame() {
+    state = STATE.OVER;
+    playCatch();
+    hud.classList.remove('playing');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('gameover');
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+    brandEl.style.display = 'none';
+    msgEl.textContent = carried.length
+      ? `The snail caught you carrying ${carried.length} thing${carried.length === 1 ? '' : 's'}.`
+      : 'The snail caught you empty-handed.';
+    finalEl.style.display = 'block';
+    finalEl.textContent = `${fmtMoney(money)} · ${elapsed.toFixed(1)}s`;
+    shareBtn.textContent = 'Challenge friend';
+    shareBtn.style.display = 'inline-block';
+    homeEl.style.display = '';
+    originBtn.style.display = '';
+    hintEl.textContent = 'Tap anywhere else to retry';
+  }
+
+  // share
+  function shareText() {
+    return `I made ${fmtMoney(money)} before the snail got me. Can you beat that? ${SHARE_URL}`;
+  }
+  function copyFallback(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  function flashShare(label) {
+    shareBtn.textContent = label;
+    clearTimeout(flashShare._t);
+    flashShare._t = setTimeout(() => { shareBtn.textContent = 'Challenge friend'; }, 2000);
+  }
+  async function doShare(e) {
+    e.stopPropagation(); e.preventDefault();
+    const text = shareText();
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; }
+      catch (err) { if (err && err.name === 'AbortError') return; }
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); flashShare('Copied!'); return; } catch (err) { /* fall through */ }
+    }
+    flashShare(copyFallback(text) ? 'Copied!' : 'Copy failed');
+  }
+  shareBtn.addEventListener('click', doShare);
+  shareBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+  // origin panel
+  function openOrigin(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    originEl.classList.add('open'); originClose.focus();
+  }
+  function closeOrigin(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    originEl.classList.remove('open'); originBtn.focus();
+  }
+  originBtn.addEventListener('click', openOrigin);
+  originClose.addEventListener('click', closeOrigin);
+  originEl.addEventListener('click', (e) => { if (e.target === originEl) closeOrigin(e); });
+
+  function tryStart(e) {
+    if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn')) return;
+    if (originEl.classList.contains('open')) return;
+    if (e && e.type === 'keydown') {
+      if (e.key === 'Escape') return;
+      if (e.target && e.target.tagName === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
+    }
+    unlockAudio();
+    if (state === STATE.START || state === STATE.OVER) startGame();
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    if (e.key === 'Escape' && originEl.classList.contains('open')) { closeOrigin(e); return; }
+    if (e.key === 'm' || e.key === 'M') { toggleMute(); return; }
+    tryStart(e);
+  });
+  window.addEventListener('pointerdown', tryStart);
+
+  // ── Update ────────────────────────────────────────────────────
+  function update(dt) {
+    elapsed += dt;
+    shimmer += dt;
+
+    // money: base rate plus whatever you carry
+    money += (CFG.baseRate + carriedRate()) * dt;
+
+    // player: steer toward finger, capped by weight, slows on arrival
+    const maxSpd = playerMaxSpeed();
+    const accel = CFG.playerAccel * SCALE / (1 + CFG.weightDrag * carriedWeight());
+    let dx = pointer.x - player.x, dy = pointer.y - player.y;
+    const d = Math.hypot(dx, dy);
+    const want = d < 1 ? 0 : maxSpd * Math.min(1, d / CFG.arriveDist);
+    const tvx = d < 1 ? 0 : (dx / d) * want, tvy = d < 1 ? 0 : (dy / d) * want;
+    let ax = tvx - player.vx, ay = tvy - player.vy;
+    const al = Math.hypot(ax, ay), amax = accel * dt;
+    if (al > amax) { ax = ax / al * amax; ay = ay / al * amax; }
+    player.vx += ax; player.vy += ay;
+    const sp = Math.hypot(player.vx, player.vy);
+    if (sp > maxSpd) { player.vx = player.vx / sp * maxSpd; player.vy = player.vy / sp * maxSpd; }
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+    const r = CFG.playerR;
+    if (player.x < r) { player.x = r; player.vx = 0; }
+    if (player.x > W - r) { player.x = W - r; player.vx = 0; }
+    if (player.y < r) { player.y = r; player.vy = 0; }
+    if (player.y > H - r) { player.y = H - r; player.vy = 0; }
+    resolveTrail();
+
+    // snail: turns toward the player at a limited rate, never stops
+    const want2 = Math.atan2(player.y - snail.y, player.x - snail.x);
+    let diff = want2 - snail.heading;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    // turn harder up close, otherwise its turning circle can orbit a player who stands still
+    const pd = dist(player.x, player.y, snail.x, snail.y);
+    const maxTurn = CFG.snailTurnRate * Math.max(1, (CFG.snailR * 5) / Math.max(pd, 1)) * dt;
+    snail.heading += Math.max(-maxTurn, Math.min(maxTurn, diff));
+    const ss = snailSpeed();
+    snail.x += Math.cos(snail.heading) * ss * dt;
+    snail.y += Math.sin(snail.heading) * ss * dt;
+    snail.x = Math.max(CFG.snailR, Math.min(W - CFG.snailR, snail.x));
+    snail.y = Math.max(CFG.snailR, Math.min(H - CFG.snailR, snail.y));
+    const lt = trail[trail.length - 1];
+    if (dist(snail.x, snail.y, lt.x, lt.y) >= CFG.trailSpacing) pushTrail(snail.x, snail.y);
+
+    // pick up loot
+    for (let i = loot.length - 1; i >= 0; i--) {
+      const l = loot[i];
+      if (dist(player.x, player.y, l.x, l.y) < CFG.playerR + CFG.lootR) {
+        const k = LOOT[l.kind];
+        carried.push({ kind: l.kind, weight: k.weight, rate: k.rate, at: elapsed });
+        floaters.push({ x: l.x, y: l.y, text: `+$${k.rate}/s`, t: 0 });
+        loot.splice(i, 1);
+        playPickup(l.kind);
+      }
+    }
+    lootTimer -= dt;
+    if (lootTimer <= 0) {
+      lootTimer = CFG.lootEvery;
+      if (loot.length < CFG.maxLoot) spawnLoot();
+    }
+    for (const f of floaters) f.t += dt;
+    floaters = floaters.filter((f) => f.t < 1.2);
+
+    // caught?
+    const sd = dist(player.x, player.y, snail.x, snail.y);
+    modulateMusic(Math.max(0, Math.min(1, 1 - sd / (Math.min(W, H) * 0.6))));
+    if (sd < (CFG.playerR + CFG.snailR) * CFG.catchPad) { endGame(); return; }
+
+    const pct = Math.round(100 * maxSpd / (CFG.playerSpeed * SCALE));
+    scoreEl.textContent = `${fmtMoney(money)} · carrying ${carried.length} · speed ${pct}%`;
+  }
+
+  // ── Draw ──────────────────────────────────────────────────────
+  function drawBg() {
+    const base = ctx.createLinearGradient(0, 0, W, H);
+    base.addColorStop(0, '#0a1a22');
+    base.addColorStop(0.5, '#061219');
+    base.addColorStop(1, '#03080d');
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, W, H);
+    const t = shimmer * 0.12;
+    const g = ctx.createRadialGradient(W * (0.4 + Math.sin(t) * 0.03), H * 0.4, 0, W * 0.4, H * 0.4, Math.max(W, H) * 0.6);
+    g.addColorStop(0, 'rgba(20, 90, 100, 0.12)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawTrail() {
+    if (trail.length < 2) return;
+    ctx.save();
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(trail[0].x, trail[0].y);
+    for (let i = 1; i < trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+    ctx.strokeStyle = 'rgba(190, 200, 120, 0.16)';
+    ctx.lineWidth = CFG.trailWidth + 8;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(205, 215, 150, 0.55)';
+    ctx.lineWidth = CFG.trailWidth;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(245, 250, 220, ${0.25 + 0.1 * Math.sin(shimmer * 2)})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawLoot() {
+    for (const l of loot) {
+      const bob = Math.sin((shimmer - l.born) * 3 + l.x) * 2;
+      const age = Math.min(1, (shimmer - l.born) * 3);
+      ctx.save();
+      ctx.translate(l.x, l.y + bob);
+      ctx.scale(age, age);
+      ctx.shadowColor = 'rgba(255, 210, 90, 0.6)';
+      ctx.shadowBlur = 12;
+      if (l.kind === 'coin') {
+        ctx.fillStyle = '#f2c14e';
+        ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#9b6b12'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke();
+      } else if (l.kind === 'gem') {
+        ctx.shadowColor = 'rgba(140, 200, 255, 0.7)';
+        ctx.fillStyle = '#8fd3ff';
+        ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(8, -2); ctx.lineTo(0, 10); ctx.lineTo(-8, -2); ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#e8f7ff'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(8, -2); ctx.stroke();
+      } else {
+        ctx.fillStyle = '#e0a82e';
+        ctx.beginPath(); ctx.moveTo(-12, 6); ctx.lineTo(12, 6); ctx.lineTo(8, -6); ctx.lineTo(-8, -6); ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#7a520c'; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawPlayer() {
+    const w = carriedWeight();
+    const heavy = Math.min(1, w / 25);
+    const r = CFG.playerR * (1 + 0.06 * Math.sin(shimmer * 9));
+    const glow = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, r * 3.2);
+    glow.addColorStop(0, 'rgba(168, 255, 232, 0.5)');
+    glow.addColorStop(1, 'rgba(62, 240, 208, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(player.x, player.y, r * 3.2, 0, Math.PI * 2); ctx.fill();
+    const body = ctx.createRadialGradient(player.x - r * 0.3, player.y - r * 0.35, 0, player.x, player.y, r);
+    body.addColorStop(0, '#e8fff9');
+    body.addColorStop(0.35, '#7fffea');
+    body.addColorStop(0.75, '#2fc9ad');
+    body.addColorStop(1, '#0c5c52');
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.ellipse(player.x, player.y + heavy * 2, r * (1 + heavy * 0.15), r * (1 - heavy * 0.12), 0, 0, Math.PI * 2); ctx.fill();
+    // loot sack grows with what you carry
+    if (carried.length) {
+      const sr = 4 + Math.min(10, Math.sqrt(w) * 2.4);
+      ctx.fillStyle = '#c99a3a';
+      ctx.beginPath(); ctx.arc(player.x, player.y - r - sr * 0.6, sr, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#6e4f14'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.fillStyle = '#6e4f14';
+      ctx.font = `bold ${Math.round(sr * 1.1)}px Georgia, serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('$', player.x, player.y - r - sr * 0.6 + 1);
+    }
+    // eye looks at the snail
+    const a = Math.atan2(snail.y - player.y, snail.x - player.x);
+    ctx.fillStyle = '#041018';
+    ctx.beginPath(); ctx.arc(player.x + Math.cos(a) * r * 0.38, player.y + Math.sin(a) * r * 0.38, r * 0.24, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawSnail() {
+    const h = snail.heading;
+    const facing = Math.cos(h) >= 0 ? 1 : -1;
+    const wig = Math.sin(shimmer * 6) * 1.5;
+    ctx.save();
+    ctx.translate(snail.x, snail.y);
+    ctx.rotate(facing > 0 ? h : h + Math.PI);
+    ctx.scale(facing, 1);
+    // body
+    ctx.fillStyle = '#c9c3a4';
+    ctx.beginPath();
+    ctx.ellipse(2, 6, CFG.snailR * 1.25, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // head and stalks
+    ctx.strokeStyle = '#c9c3a4'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(CFG.snailR, 3); ctx.lineTo(CFG.snailR + 8, -9 + wig); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CFG.snailR - 3, 3); ctx.lineTo(CFG.snailR + 2, -11 - wig); ctx.stroke();
+    ctx.fillStyle = '#1a1208';
+    ctx.beginPath(); ctx.arc(CFG.snailR + 8, -9 + wig, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(CFG.snailR + 2, -11 - wig, 2.2, 0, Math.PI * 2); ctx.fill();
+    // shell: a spiral
+    const sx = -3, sy = -3, R = CFG.snailR;
+    const sh = ctx.createRadialGradient(sx - 4, sy - 5, 1, sx, sy, R);
+    sh.addColorStop(0, '#e9b86a');
+    sh.addColorStop(0.6, '#a8642a');
+    sh.addColorStop(1, '#5a2e12');
+    ctx.fillStyle = sh;
+    ctx.beginPath(); ctx.arc(sx, sy, R, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3a1d08'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (let t = 0; t < Math.PI * 5; t += 0.15) {
+      const rr = R * 0.92 * (1 - t / (Math.PI * 5.4));
+      const px = sx + Math.cos(t) * rr, py = sy + Math.sin(t) * rr;
+      if (t === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawFloaters() {
+    ctx.save();
+    ctx.font = '600 13px "Gill Sans", "Trebuchet MS", sans-serif';
+    ctx.textAlign = 'center';
+    for (const f of floaters) {
+      ctx.fillStyle = `rgba(255, 215, 110, ${1 - f.t / 1.2})`;
+      ctx.fillText(f.text, f.x, f.y - 14 - f.t * 26);
+    }
+    ctx.restore();
+  }
+
+  function drawCursor() {
+    if (!pointer.on) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(127, 255, 234, 0.4)';
+    ctx.lineWidth = 1.25;
+    ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 8, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawVignette() {
+    const g = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.25, W * 0.5, H * 0.5, Math.max(W, H) * 0.8);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, 'rgba(0, 2, 8, 0.7)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // idle screen: the snail slowly circles the blob
+  function idleScene() {
+    player.x = W * 0.5; player.y = H * 0.72;
+    const a = shimmer * 0.35;
+    snail.x = player.x + Math.cos(a) * 90;
+    snail.y = player.y + Math.sin(a) * 40;
+    snail.heading = a + Math.PI / 2;
+  }
+
+  // ── Loop ──────────────────────────────────────────────────────
+  let last = performance.now();
+  function frame(now) {
+    let dt = (now - last) / 1000;
+    last = now;
+    dt = Math.min(0.033, Math.max(0, dt));
+    if (state === STATE.PLAY) update(dt);
+    else { shimmer += dt; if (state === STATE.START) idleScene(); }
+    drawBg();
+    drawTrail();
+    drawLoot();
+    drawSnail();
+    drawPlayer();
+    drawFloaters();
+    drawCursor();
+    drawVignette();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  syncMuteUi();
+  // test hook: ?debug exposes internals to the console
+  if (/[?&]debug\b/.test(location.search)) window.__snail = { player, snail, get trail() { return trail; }, get loot() { return loot; }, get carried() { return carried; }, CFG };
+})();
+</script>
+</body>
+</html>

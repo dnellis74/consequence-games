@@ -245,6 +245,8 @@
     text-shadow: 0 0 14px rgba(62, 240, 208, 0.45);
   }
   #origin p { margin-bottom: 0.85rem; color: rgba(212, 255, 246, 0.88); }
+  #origin .links { line-height: 1.9; font-size: 0.92rem; }
+  #origin .links a { color: var(--teal); }
   #origin .close {
     cursor: pointer;
     margin-top: 0.4rem;
@@ -307,10 +309,13 @@
 <div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
   <div class="panel">
     <h2 id="originTitle">Spark</h2>
-    <p>The first time I played this kind of game was Surround, one of the cartridges that launched with the Atari 2600 in 1977. Surround was a home version of Blockade, a 1976 arcade game from Gremlin: two lines, each leaving a wall behind it, and whoever crashed first lost. Twenty years later the same idea became Snake on Nokia phones.</p>
-    <p>All of those ran on a grid and turned at right angles, because that is what the hardware and the buttons allowed. <a href="/blob" style="color: var(--teal)">Blob</a> was my attempt to update the idea for a touchscreen: no grid, curves instead of corners, and you steer with your finger.</p>
-    <p>This version turns it around again. Here the trail belongs to your pursuer, a snail. In 2014, on the Rooster Teeth podcast, Gavin Free asked whether you would take $10 million and immortality if an immortal snail followed you forever and its touch killed you. It became a meme, the immortal snail, also called the snail assassin. Snails were chasing people long before that: scribes in the 13th and 14th centuries drew armored knights fighting snails in the margins of manuscripts, and the knights were often losing. One theory, from the scholar Lilian Randall, is that the snails stood for Lombard moneylenders.</p>
-    <p>So money piles up while you run, everything you pick up makes you slower, and the snail never stops. Its trail never dries, and you can't cross it. The score is the one Blockade used, updated: how long you last, counted in dollars.</p>
+    <p>The Snake genre is one of the oldest in gaming. It began with Blockade, a 1976 arcade game by Gremlin. Two lines, each leaving a wall behind it, and whoever crashed first lost. I first encountered it on the Atari 2600 as Surround, one of the launch cartridges for that console. Twenty years later the same idea became Snake on Nokia phones, and became synonymous with the genre.</p>
+    <p>This is an attempt to reimagine the idea for the current moment: remove the 90 degree angles and other limitations of the original hardware, and add touch interaction. I also wanted to give it a little more grounding in gaming culture.</p>
+    <p>In 2014, on the Rooster Teeth podcast, Gavin Free asked whether you would take $10 million and immortality if an immortal snail followed you forever and its touch killed you. It became a meme, the immortal snail, also called the snail assassin. So money piles up while you run, everything you pick up makes you slower, and the snail never stops. Good luck!</p>
+    <p class="links">
+      <a href="https://en.wikipedia.org/wiki/Snake_(video_game_genre)" target="_blank" rel="noopener">Snake (video game genre), Wikipedia</a><br>
+      <a href="https://knowyourmeme.com/memes/immortal-snail" target="_blank" rel="noopener">Immortal Snail, Know Your Meme</a>
+    </p>
     <p style="color: var(--muted); font-size: 0.9rem">David Nellis, <a href="/" style="color: var(--teal)">consequence.games</a></p>
     <button type="button" class="close" id="originClose">Back to the snail</button>
   </div>

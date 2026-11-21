@@ -298,7 +298,7 @@
   <div id="score">$0</div>
   <div id="overlay" class="visible">
     <div id="brand">BLOB <span class="v">v</span> SNAIL</div>
-    <p id="msg">A snail is after you. Grab the loot: it makes you richer, and heavier.</p>
+    <p id="msg">A snail is after you. Tap to drop waypoints and your blob will follow them. Loot makes you richer, and heavier.</p>
     <div id="hint">Tap to start</div>
     <div id="final" style="display:none"></div>
     <button type="button" id="share" style="display:none">Challenge friend</button>
@@ -307,10 +307,10 @@
 <div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
   <div class="panel">
     <h2 id="originTitle">Where this came from</h2>
-    <p>In 2014, on the Rooster Teeth podcast, Gavin Free asked a question: would you take $10 million and immortality if an immortal snail followed you for the rest of your life, and its touch killed you? It turned into a meme, the immortal snail, also called the snail assassin.</p>
-    <p>Snails were chasing people long before that. In the margins of 13th and 14th century manuscripts, scribes drew armored knights fighting snails, and the knights were often losing. One theory, from the scholar Lilian Randall, is that the snails stood for Lombard moneylenders.</p>
-    <p>This game puts the two together. Money piles up while you run, and everything you pick up makes you slower. The snail never speeds up. It just never stops, and its trail never dries.</p>
-    <p>Blob v Snail is a variant of <a href="/blob" style="color: var(--teal)">Blob</a>, my touchscreen take on Snake.</p>
+    <p>The first time I played this kind of game was Surround, one of the cartridges that launched with the Atari 2600 in 1977. Surround was a home version of Blockade, a 1976 arcade game from Gremlin: two lines, each leaving a wall behind it, and whoever crashed first lost. Twenty years later the same idea became Snake on Nokia phones.</p>
+    <p>All of those ran on a grid and turned at right angles, because that is what the hardware and the buttons allowed. <a href="/blob" style="color: var(--teal)">Blob</a> was my attempt to update the idea for a touchscreen: no grid, curves instead of corners, and you steer with your finger.</p>
+    <p>This version turns it around again. Here the trail belongs to your pursuer, a snail. In 2014, on the Rooster Teeth podcast, Gavin Free asked whether you would take $10 million and immortality if an immortal snail followed you forever and its touch killed you. It became a meme, the immortal snail, also called the snail assassin. Snails were chasing people long before that: scribes in the 13th and 14th centuries drew armored knights fighting snails in the margins of manuscripts, and the knights were often losing. One theory, from the scholar Lilian Randall, is that the snails stood for Lombard moneylenders.</p>
+    <p>So money piles up while you run, everything you pick up makes you slower, and the snail never stops. Its trail never dries, and you can't cross it. The score is the one Blockade used, updated: how long you last, counted in dollars.</p>
     <p style="color: var(--muted); font-size: 0.9rem">Dave Nellis, <a href="/" style="color: var(--teal)">consequence.games</a></p>
     <button type="button" class="close" id="originClose">Back to the snail</button>
   </div>
@@ -331,7 +331,10 @@
     playerSpeed: 340,       // top speed with empty pockets
     playerAccel: 1500,
     playerR: 12,
-    arriveDist: 36,         // slows down this close to your finger
+    arriveDist: 36,         // slows down this close to the last waypoint
+    passDist: 14,           // counts as reached for a waypoint with more queued after it
+    maxWaypoints: 8,        // extra taps replace the last waypoint
+    stuckSecs: 1.2,         // skip a waypoint if no progress toward it for this long (e.g. blocked by slime)
     weightDrag: 0.055,      // speed = playerSpeed / (1 + weightDrag * carried weight)
 
     // snail
@@ -510,6 +513,8 @@
   let carried = [];        // picked up items {kind,weight,rate,at}
   let money = 0, elapsed = 0, lootTimer = 0, shimmer = 0;
   let floaters = [];       // "+$" popups {x,y,text,t}
+  let waypoints = [];      // tap targets, visited in order {x,y}
+  let bestDist = Infinity, stuckT = 0;
 
   const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 
@@ -617,7 +622,7 @@
     corners.sort((a, b) => dist(b[0], b[1], player.x, player.y) - dist(a[0], a[1], player.x, player.y));
     snail.x = corners[0][0]; snail.y = corners[0][1];
     snail.heading = Math.atan2(player.y - snail.y, player.x - snail.x);
-    trail = []; grid = new Map(); loot = []; carried = []; floaters = [];
+    trail = []; grid = new Map(); loot = []; carried = []; floaters = []; waypoints = []; bestDist = Infinity; stuckT = 0;
     pushTrail(snail.x, snail.y);
     money = 0; elapsed = 0; lootTimer = 0.6;
     if (!pointer.on) { pointer.x = player.x; pointer.y = player.y; }
@@ -707,6 +712,13 @@
   originClose.addEventListener('click', closeOrigin);
   originEl.addEventListener('click', (e) => { if (e.target === originEl) closeOrigin(e); });
 
+  function addWaypoint(x, y) {
+    const wp = { x: Math.max(CFG.playerR, Math.min(W - CFG.playerR, x)), y: Math.max(CFG.playerR, Math.min(H - CFG.playerR, y)) };
+    if (waypoints.length >= CFG.maxWaypoints) waypoints[waypoints.length - 1] = wp;
+    else waypoints.push(wp);
+    if (waypoints.length === 1) { bestDist = Infinity; stuckT = 0; }
+  }
+
   function tryStart(e) {
     if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn')) return;
     if (originEl.classList.contains('open')) return;
@@ -715,6 +727,10 @@
       if (e.target && e.target.tagName === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
     }
     unlockAudio();
+    if (state === STATE.PLAY) {
+      if (e && e.type === 'pointerdown') addWaypoint(e.clientX, e.clientY);
+      return;
+    }
     if (state === STATE.START || state === STATE.OVER) startGame();
   }
   window.addEventListener('keydown', (e) => {
@@ -733,13 +749,26 @@
     // money: base rate plus whatever you carry
     money += (CFG.baseRate + carriedRate()) * dt;
 
-    // player: steer toward finger, capped by weight, slows on arrival
+    // player: head for the first waypoint, capped by weight; slow down only
+    // at the last one, pass through the others
     const maxSpd = playerMaxSpeed();
     const accel = CFG.playerAccel * SCALE / (1 + CFG.weightDrag * carriedWeight());
-    let dx = pointer.x - player.x, dy = pointer.y - player.y;
-    const d = Math.hypot(dx, dy);
-    const want = d < 1 ? 0 : maxSpd * Math.min(1, d / CFG.arriveDist);
-    const tvx = d < 1 ? 0 : (dx / d) * want, tvy = d < 1 ? 0 : (dy / d) * want;
+    let tvx = 0, tvy = 0;
+    while (waypoints.length) {
+      const wp = waypoints[0];
+      const dx = wp.x - player.x, dy = wp.y - player.y;
+      const d = Math.hypot(dx, dy);
+      const isLast = waypoints.length === 1;
+      // reached, or stuck (usually slime in the way): move on to the next one
+      if (d < (isLast ? 3 : CFG.passDist) || stuckT > CFG.stuckSecs) {
+        waypoints.shift(); bestDist = Infinity; stuckT = 0;
+        continue;
+      }
+      if (d < bestDist - 1) { bestDist = d; stuckT = 0; } else stuckT += dt;
+      const want = isLast ? maxSpd * Math.min(1, d / CFG.arriveDist) : maxSpd;
+      tvx = dx / d * want; tvy = dy / d * want;
+      break;
+    }
     let ax = tvx - player.vx, ay = tvy - player.vy;
     const al = Math.hypot(ax, ay), amax = accel * dt;
     if (al > amax) { ax = ax / al * amax; ay = ay / al * amax; }
@@ -939,6 +968,28 @@
     ctx.restore();
   }
 
+  function drawWaypoints() {
+    if (state !== STATE.PLAY || !waypoints.length) return;
+    ctx.save();
+    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = 'rgba(127, 255, 234, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    for (const w of waypoints) ctx.lineTo(w.x, w.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    waypoints.forEach((w, i) => {
+      const pulse = i === 0 ? 1 + 0.15 * Math.sin(shimmer * 8) : 1;
+      ctx.strokeStyle = i === 0 ? 'rgba(168, 255, 232, 0.85)' : 'rgba(127, 255, 234, 0.45)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(w.x, w.y, 7 * pulse, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath(); ctx.arc(w.x, w.y, 2, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+  }
+
   function drawFloaters() {
     ctx.save();
     ctx.font = '600 13px "Gill Sans", "Trebuchet MS", sans-serif';
@@ -989,6 +1040,7 @@
     drawLoot();
     drawSnail();
     drawPlayer();
+    drawWaypoints();
     drawFloaters();
     drawCursor();
     drawVignette();

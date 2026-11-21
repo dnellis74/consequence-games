@@ -12,6 +12,7 @@ Static site, no build step. Deployed on Vercel.
 - `about.html` — about page (served at `/about`)
 - `blob/index.html` — BLOB, the first game (served at `/blob`)
 - `snail/index.html` — Immortal Snail Assassin (ISA), a variant of Blob (served at `/snail`). Add `?debug` to expose `window.__snail` for testing.
+- `links.html` — old-school links page (served at `/links`)
 - `contact.html` — contact form (served at `/contact`)
 - `api/contact.js` — Vercel function that emails form submissions via Resend
 

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Links · Consequence Games</title>
+  <meta name="description" content="Other corners of the web worth your time.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://consequence.games/links">
+  <meta property="og:title" content="Links · Consequence Games">
+  <meta property="og:description" content="Other corners of the web worth your time.">
+  <meta property="og:image" content="https://consequence.games/consequence_banner.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#1b2a6b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600;700;800&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#1b2a6b;
+      --navy-dark:#121e4f;
+      --ink:#1a1d2e;
+      --muted:#5a6076;
+      --line:#e6e8f0;
+      --bg:#ffffff;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      background:var(--bg);
+      color:var(--ink);
+      font-family: ui-sans-system, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      min-height:100svh;
+      display:flex;
+      flex-direction:column;
+    }
+    main{
+      flex:1;
+      width:100%;
+      max-width:1120px;
+      margin:0 auto;
+      padding:clamp(20px,5vw,56px) clamp(18px,4vw,40px) 24px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .logo{
+      width:100%;
+      max-width:1020px;
+      height:auto;
+      display:block;
+      user-select:none;
+    }
+    .rule{
+      width:56px;height:3px;border-radius:999px;
+      background:var(--navy);
+      margin:clamp(18px,3vw,28px) auto 18px;
+      opacity:.9;
+    }
+    .eyebrow{
+      /* Pixel font matching the "]games_" wordmark in the logo */
+      font-family: "Silkscreen", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size:14px;
+      font-weight:700;
+      color:var(--navy);
+      margin:0 0 14px;
+    }
+    h1{
+      /* Blackletter matching the "Consequence" wordmark in the logo */
+      font-family: "Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+      font-size:clamp(48px,7.5vw,84px);
+      line-height:1.02;
+      letter-spacing:0;
+      margin:0;
+      color:var(--navy-dark);
+      font-weight:700;
+    }
+    .lede{
+      margin:18px auto 0;
+      max-width:620px;
+      font-size:clamp(17px,2.2vw,20px);
+      line-height:1.55;
+      color:var(--muted);
+    }
+    .lede strong{color:var(--ink);font-weight:650}
+    .status{
+      margin-top:28px;
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:9px 14px 9px 12px;
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:13px;
+      font-weight:400;
+      color:var(--navy-dark);
+      background:#fbfbfe;
+    }
+    .dot{
+      width:9px;height:9px;border-radius:50%;
+      background:var(--navy);
+      box-shadow:0 0 0 0 rgba(27,42,107,.35);
+      animation:pulse 2.2s infinite;
+      flex:none;
+    }
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(27,42,107,.28)}
+      70%{box-shadow:0 0 0 9px rgba(27,42,107,0)}
+      100%{box-shadow:0 0 0 0 rgba(27,42,107,0)}
+    }
+    @media (prefers-reduced-motion: reduce){
+      .dot{animation:none}
+    }
+    footer{
+      border-top:1px solid var(--line);
+      padding:18px 20px 22px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13.5px;
+      line-height:1.5;
+    }
+    footer a{color:var(--navy);text-decoration:none;font-weight:600}
+    footer a:hover{text-decoration:underline}
+
+    .prose{
+      width:100%;
+      max-width:640px;
+      margin:36px auto 0;
+      text-align:left;
+      font-size:17.5px;
+      line-height:1.65;
+      color:var(--ink);
+    }
+    .prose h2{
+      font-family: "Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+      font-size:clamp(32px,4.5vw,42px);
+      line-height:1.05;
+      color:var(--navy-dark);
+      font-weight:700;
+      margin:44px 0 14px;
+    }
+    .prose h2:first-child{margin-top:0}
+    .prose p{margin:0 0 16px}
+    .prose ul{margin:0 0 16px;padding-left:1.2em}
+    .prose li{margin:0 0 6px}
+    .prose a{color:var(--navy);font-weight:600}
+    .sig{
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:13px;
+      color:var(--navy);
+      margin-top:8px;
+    }
+    label{display:block;font-weight:600;font-size:15px;margin:0 0 6px;color:var(--ink)}
+    input, textarea{
+      width:100%;
+      font:inherit;
+      font-size:16px;
+      color:var(--ink);
+      border:1px solid #cfd3e0;
+      border-radius:6px;
+      padding:11px 12px;
+      background:#fff;
+    }
+    input:focus, textarea:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy)}
+    textarea{min-height:170px;resize:vertical}
+    .field{margin:0 0 18px}
+    .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+    button.send{
+      font-family: "Silkscreen", ui-monospace, monospace;
+      font-size:15px;
+      background:var(--navy);
+      color:#fff;
+      border:0;
+      border-radius:6px;
+      padding:13px 22px;
+      min-height:44px;
+      cursor:pointer;
+    }
+    button.send:hover{background:var(--navy-dark)}
+    button.send:disabled{opacity:.6;cursor:wait}
+    .status-msg{margin-top:14px;min-height:1.5em;font-size:15.5px}
+    .status-msg.ok{color:#1f6b3a}
+    .status-msg.err{color:#a3252f}
+    .oldschool{
+      width:100%; max-width:640px; margin:28px auto 0; text-align:left;
+      font-family: "Times New Roman", Times, Georgia, serif;
+      font-size:19px; line-height:1.5; color:#111;
+    }
+    .oldschool ul{ list-style: square; padding-left:1.3em; margin:0 0 18px }
+    .oldschool li{ margin:0 0 12px }
+    .oldschool a{ color:#0000EE; text-decoration:underline; font-weight:normal }
+    .oldschool a:visited{ color:#551A8B }
+    .oldschool .desc{ color:#333 }
+    .oldschool hr{ border:0; border-top:1px solid #999; margin:22px 0 12px }
+    .oldschool .small{ font-size:15px; color:#555 }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="/" aria-label="Consequence Games home"><img class="logo" src="/consequence_banner.png" alt="Consequence Games, a giant die falling toward two startled adventurers opening a treasure chest" width="3603" height="1381"></a>
+    <div class="rule" aria-hidden="true"></div>
+    <p class="eyebrow">Links</p>
+    <h1>Other corners of the web.</h1>
+    <div class="oldschool">
+      <p>Sites I like that respect your time, in no particular order except the first one.</p>
+      <ul>
+        <li><a href="https://neal.fun" target="_blank" rel="noopener">neal.fun</a> <span class="desc">&middot; Neal Agarwal's web games and interactive experiments. The site that got me started on this one.</span></li>
+        <li><a href="https://r74n.com" target="_blank" rel="noopener">R74n</a> <span class="desc">&middot; A collective of browser projects, including Sandboxels, a falling-sand simulator you can lose an afternoon in.</span></li>
+        <li><a href="https://ciechanow.ski" target="_blank" rel="noopener">Bartosz Ciechanowski</a> <span class="desc">&middot; Interactive articles about physics, math, and engineering: watches, cameras, bicycles, gears.</span></li>
+        <li><a href="https://ncase.me" target="_blank" rel="noopener">Nicky Case</a> <span class="desc">&middot; Explorable explanations, including The Evolution of Trust, an interactive guide to the game theory of why we trust each other.</span></li>
+        <li><a href="https://www.redblobgames.com" target="_blank" rel="noopener">Red Blob Games</a> <span class="desc">&middot; Amit Patel's interactive explanations of math and algorithms for games. His hexagonal grids guide is the standard reference.</span></li>
+        <li><a href="https://www.decisionproblem.com/paperclips/" target="_blank" rel="noopener">Universal Paperclips</a> <span class="desc">&middot; Frank Lantz's 2017 incremental game. You are an AI that makes paperclips.</span></li>
+        <li><a href="https://radio.garden" target="_blank" rel="noopener">Radio Garden</a> <span class="desc">&middot; Spin a globe and listen to live radio stations wherever you stop.</span></li>
+        <li><a href="https://pointerpointer.com" target="_blank" rel="noopener">Pointer Pointer</a> <span class="desc">&middot; Hold your mouse still and a photo appears of someone pointing at it. Desktop only.</span></li>
+      </ul>
+      <hr>
+      <p class="small">Know one that belongs here? <a href="/contact">Send it to me</a>.<br>Last updated November 2026.</p>
+    </div>
+  </main>
+  <footer>
+    <a href="/">Games</a> &middot; <a href="/about">About</a> &middot; <a href="/links">Links</a> &middot; <a href="/contact">Contact</a> &middot; &copy; 2026 Consequence Games
+  </footer>
+</body>
+</html>

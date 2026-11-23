@@ -76,6 +76,7 @@
     text-shadow: 0 0 12px rgba(62, 240, 208, 0.35);
   }
   #hud.playing #score { opacity: 1; }
+  #score .sub { display: block; margin-top: 0.3em; font-size: 0.72em; letter-spacing: 0.16em; }
   #overlay {
     text-align: center;
     max-width: min(92vw, 28rem);
@@ -359,7 +360,7 @@
     gridCell: 40,           // spatial hash cell size for trail collision
 
     // score
-    baseRate: 10,           // $ per second with nothing carried
+    baseRate: 10,           // $ per second just for staying alive (keep low so pickups matter more than stalling)
 
     // loot
     maxLoot: 5,
@@ -370,11 +371,15 @@
 
   // Loot kinds. Each pickup is pushed onto `carried` as its own item so a
   // later version can drop items one at a time.
+  // Set collection: `sets[n-1]` is what n of a kind are worth together.
+  // A set tops out at 5; the 6th of a kind starts a new set
+  // (6 bags = $500 + $10).
   const LOOT = {
-    coin:  { weight: 1,   rate: 6,  chance: 0.62, label: 'money bag' },
-    gem:   { weight: 0.6, rate: 14, chance: 0.23, label: 'diamond' },
-    ingot: { weight: 4,   rate: 32, chance: 0.15, label: 'gold bar' },
+    coin:  { weight: 1,   chance: 0.62, label: 'money bag', short: 'bags',     sets: [10, 20, 50, 100, 500] },
+    gem:   { weight: 0.6, chance: 0.23, label: 'diamond',   short: 'diamonds', sets: [1000, 2000, 5000, 10000, 20000] },
+    ingot: { weight: 4,   chance: 0.15, label: 'gold bar',  short: 'gold',     sets: [100, 500, 1000, 2000, 5000] },
   };
+  const SET_SIZE = 5;
 
   // ── DOM / canvas ──────────────────────────────────────────────
   const canvas = document.getElementById('c');
@@ -521,7 +526,7 @@
   let trailBase = 0;       // global id of trail[0]; segment g joins points g and g+1
   let trailLen = 0;        // total slime length in px
   let loot = [];           // on the field {kind,x,y,born}
-  let carried = [];        // picked up items {kind,weight,rate,at}
+  let carried = [];        // picked up items {kind,weight,at}
   let money = 0, elapsed = 0, lootTimer = 0, shimmer = 0;
   let floaters = [];       // "+$" popups {x,y,text,t}
   let waypoints = [];      // tap targets, visited in order {x,y}
@@ -532,7 +537,14 @@
   // totals are derived from the carried list, never stored, so dropping
   // an item later is just removing it from the array
   function carriedWeight() { let w = 0; for (const c of carried) w += c.weight; return w; }
-  function carriedRate() { let r = 0; for (const c of carried) r += c.rate; return r; }
+  function countOf(kind) { let n = 0; for (const c of carried) if (c.kind === kind) n++; return n; }
+  function setValue(kind, n) {
+    const t = LOOT[kind].sets;
+    const full = Math.floor(n / SET_SIZE), rest = n % SET_SIZE;
+    return full * t[SET_SIZE - 1] + (rest ? t[rest - 1] : 0);
+  }
+  function setsValue() { let v = 0; for (const k in LOOT) v += setValue(k, countOf(k)); return v; }
+  function totalMoney() { return money + setsValue(); }
   function playerMaxSpeed() { return CFG.playerSpeed * SCALE / (1 + CFG.weightDrag * carriedWeight()); }
   function snailSpeed() {
     return CFG.playerSpeed * SCALE * CFG.snailSpeedFrac * (1 + CFG.snailGrowthPerMin * elapsed / 60);
@@ -690,7 +702,7 @@
       ? `The snail caught you carrying ${carried.length} thing${carried.length === 1 ? '' : 's'}.`
       : 'The snail caught you empty-handed.';
     finalEl.style.display = 'block';
-    finalEl.textContent = `${fmtMoney(money)} · ${elapsed.toFixed(1)}s`;
+    finalEl.textContent = `${fmtMoney(totalMoney())} · ${elapsed.toFixed(1)}s`;
     shareBtn.textContent = 'Challenge friend';
     shareBtn.style.display = 'inline-block';
     homeEl.style.display = '';
@@ -700,7 +712,7 @@
 
   // share
   function shareText() {
-    return `I made ${fmtMoney(money)} before the snail got me. Can you beat that? ${SHARE_URL}`;
+    return `I made ${fmtMoney(totalMoney())} before the snail got me. Can you beat that? ${SHARE_URL}`;
   }
   function copyFallback(text) {
     const ta = document.createElement('textarea');
@@ -779,8 +791,8 @@
     elapsed += dt;
     shimmer += dt;
 
-    // money: base rate plus whatever you carry
-    money += (CFG.baseRate + carriedRate()) * dt;
+    // money: time alive at the base rate; carried sets are added in totalMoney()
+    money += CFG.baseRate * dt;
 
     // player: head for the first waypoint, capped by weight; slow down only
     // at the last one, pass through the others
@@ -842,8 +854,12 @@
       const l = loot[i];
       if (dist(player.x, player.y, l.x, l.y) < CFG.playerR + CFG.lootR) {
         const k = LOOT[l.kind];
-        carried.push({ kind: l.kind, weight: k.weight, rate: k.rate, at: elapsed });
-        floaters.push({ x: l.x, y: l.y, text: `+$${k.rate}/s`, t: 0 });
+        const before = setValue(l.kind, countOf(l.kind));
+        carried.push({ kind: l.kind, weight: k.weight, at: elapsed });
+        const n = countOf(l.kind);
+        const gain = setValue(l.kind, n) - before;
+        const inSet = ((n - 1) % SET_SIZE) + 1;
+        floaters.push({ x: l.x, y: l.y, text: `+${fmtMoney(gain)} (${inSet}/${SET_SIZE})`, t: 0 });
         loot.splice(i, 1);
         playPickup(l.kind);
       }
@@ -862,7 +878,8 @@
     if (sd < (CFG.playerR + CFG.snailR) * CFG.catchPad) { endGame(); return; }
 
     const pct = Math.round(100 * maxSpd / (CFG.playerSpeed * SCALE));
-    scoreEl.textContent = `${fmtMoney(money)} · carrying ${carried.length} · speed ${pct}%`;
+    const counts = ['coin', 'ingot', 'gem'].map((k) => `${LOOT[k].short} ${countOf(k)}`).join(' · ');
+    scoreEl.innerHTML = `${fmtMoney(totalMoney())}<span class="sub">${counts} · speed ${pct}%</span>`;
   }
 
   // ── Draw ──────────────────────────────────────────────────────

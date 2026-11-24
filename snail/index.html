@@ -173,6 +173,31 @@
     background: rgba(8, 28, 36, 0.8);
     outline: none;
   }
+  #board {
+    pointer-events: auto;
+    margin: 0 auto 1.1rem;
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    color: var(--ui);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+  #board .tabs { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 0.5rem; }
+  #board button, #board input {
+    font-family: inherit; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+    border: 1px solid rgba(62, 240, 208, 0.35); background: rgba(4, 16, 24, 0.6);
+    color: var(--teal); padding: 0.5rem 0.8rem; border-radius: 2px; min-height: 40px; cursor: pointer;
+  }
+  #board button.on { color: var(--cyan); border-color: rgba(62, 240, 208, 0.8); }
+  #board ol { list-style: none; margin: 0 auto; padding: 0; max-width: 16rem; text-align: left; }
+  #board li { display: flex; gap: 0.6rem; padding: 0.12rem 0.2rem; }
+  #board li .r { width: 1.6rem; color: var(--muted); text-align: right; }
+  #board li .n { width: 3rem; letter-spacing: 0.2em; }
+  #board li .s { flex: 1; text-align: right; color: #d9c27a; }
+  #board li.me { color: var(--mint); text-shadow: 0 0 10px rgba(127, 255, 234, 0.6); }
+  #board .empty, #board .note { color: var(--muted); text-align: center; padding: 0.3rem; }
+  #board form { display: flex; justify-content: center; gap: 0.4rem; margin: 0.2rem 0 0.7rem; flex-wrap: wrap; }
+  #board .newhi { color: var(--mint); margin-bottom: 0.4rem; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; }
+  #board input { width: 5.2rem; text-align: center; color: var(--mint); font-size: 1rem; letter-spacing: 0.4em; cursor: text; }
   #home {
     position: fixed;
     bottom: 1.1rem;
@@ -305,6 +330,7 @@
     <div id="hint">Tap to start</div>
     <div id="final" style="display:none"></div>
     <button type="button" id="share" style="display:none">Challenge friend</button>
+    <div id="board" style="display:none"></div>
   </div>
 </div>
 <div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
@@ -398,6 +424,9 @@
   const originBtn = document.getElementById('originBtn');
   const originClose = document.getElementById('originClose');
   const SHARE_URL = 'https://consequence.games/snail';
+  // High score API (Cloudflare Worker in /worker). Empty string turns high scores off.
+  // TODO: set to the deployed worker URL, e.g. 'https://consequence-scores.<you>.workers.dev'
+  const SCORES_API = '';
 
   let W = 0, H = 0, dpr = 1, SCALE = 1;
   function resize() {
@@ -685,6 +714,7 @@
     setTimeout(() => overlay.classList.add('hidden'), 400);
     finalEl.style.display = 'none';
     shareBtn.style.display = 'none';
+    boardEl.style.display = 'none'; boardEl.innerHTML = '';
     homeEl.style.display = 'none';
     originBtn.style.display = 'none';
     brandEl.style.display = '';
@@ -708,6 +738,7 @@
     homeEl.style.display = '';
     originBtn.style.display = '';
     hintEl.textContent = 'Tap anywhere else to retry';
+    showBoard();
   }
 
   // share
@@ -744,6 +775,103 @@
   shareBtn.addEventListener('click', doShare);
   shareBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 
+  // ── High scores ───────────────────────────────────────────────
+  const boardEl = document.getElementById('board');
+  let boardTab = 'allTime', boardData = null, myId = null, runId = 0;
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function loadInitials() { try { return localStorage.getItem('isa-initials') || ''; } catch (err) { return ''; } }
+  function saveInitials(v) { try { localStorage.setItem('isa-initials', v); } catch (err) { /* private mode */ } }
+  function qualifies(score, data) {
+    return ['allTime', 'recent'].some((k) => {
+      const list = data[k] || [];
+      return list.length < 10 || score > list[list.length - 1].score;
+    });
+  }
+  function renderList() {
+    const list = (boardData && boardData[boardTab]) || [];
+    if (!list.length) return '<div class="empty">No scores yet</div>';
+    return '<ol>' + list.map((r, i) =>
+      `<li class="${r.id === myId ? 'me' : ''}"><span class="r">${i + 1}</span><span class="n">${esc(r.name)}</span><span class="s">${fmtMoney(r.score)}</span></li>`
+    ).join('') + '</ol>';
+  }
+  function renderBoard(headHtml) {
+    boardEl.innerHTML = `<div class="head">${headHtml || ''}</div>` +
+      '<div class="tabs"><button type="button" data-tab="allTime">All time</button>' +
+      '<button type="button" data-tab="recent">Past 24 hours</button></div><div class="list"></div>';
+    renderTab();
+  }
+  function renderTab() {
+    boardEl.querySelectorAll('button[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === boardTab));
+    boardEl.querySelector('.list').innerHTML = renderList();
+  }
+  boardEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-tab]');
+    if (!b) return;
+    boardTab = b.dataset.tab;
+    renderTab();
+  });
+  function wireForm() {
+    const form = boardEl.querySelector('form');
+    if (!form) return;
+    const input = form.querySelector('input');
+    input.value = loadInitials();
+    input.addEventListener('input', () => { input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3); });
+    form.addEventListener('submit', submitScore);
+    form.querySelector('[data-skip]').addEventListener('click', () => { boardEl.querySelector('.head').innerHTML = ''; });
+  }
+  const FORM_HTML = '<div class="newhi">High score! Your initials</div>' +
+    '<form><input name="n" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Initials">' +
+    '<button type="submit">Save</button><button type="button" data-skip>Skip</button></form>';
+  async function showBoard() {
+    if (!SCORES_API) return;
+    const myRun = ++runId;
+    myId = null;
+    boardEl.style.display = 'block';
+    boardEl.innerHTML = '<div class="note">Loading high scores…</div>';
+    try {
+      const r = await fetch(`${SCORES_API}/scores?game=snail`);
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      if (myRun !== runId) return;
+      boardData = data;
+      if (qualifies(Math.floor(totalMoney()), data)) { renderBoard(FORM_HTML); wireForm(); }
+      else renderBoard();
+    } catch (err) {
+      if (myRun === runId) boardEl.innerHTML = '<div class="note">High scores are unavailable right now</div>';
+    }
+  }
+  async function submitScore(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const name = form.querySelector('input').value;
+    if (!/^[A-Z]{3}$/.test(name)) { form.querySelector('input').focus(); return; }
+    saveInitials(name);
+    const myRun = runId;
+    const counts = {};
+    for (const k in LOOT) counts[k] = countOf(k);
+    form.querySelector('button[type=submit]').disabled = true;
+    try {
+      const r = await fetch(`${SCORES_API}/scores`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ game: 'snail', name, elapsed, detail: { counts } }),
+      });
+      const data = await r.json();
+      if (myRun !== runId) return;
+      if (!r.ok) {
+        form.querySelector('button[type=submit]').disabled = false;
+        form.previousElementSibling.textContent = data.error || 'Could not save';
+        return;
+      }
+      boardData = data; myId = data.id;
+      renderBoard(`<div class="newhi">Saved. You're #${data.rank} all time</div>`);
+    } catch (err) {
+      if (myRun !== runId) return;
+      form.querySelector('button[type=submit]').disabled = false;
+      form.previousElementSibling.textContent = 'Could not save, try again';
+    }
+  }
+
   // origin panel
   function openOrigin(e) {
     if (e) { e.stopPropagation(); e.preventDefault(); }
@@ -765,7 +893,7 @@
   }
 
   function tryStart(e) {
-    if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn')) return;
+    if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn, #board')) return;
     if (originEl.classList.contains('open')) return;
     if (e && e.type === 'keydown') {
       if (e.key === 'Escape') return;
@@ -780,6 +908,7 @@
   }
   window.addEventListener('keydown', (e) => {
     if (e.repeat) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.closest && e.target.closest('#board'))) return;
     if (e.key === 'Escape' && originEl.classList.contains('open')) { closeOrigin(e); return; }
     if (e.key === 'm' || e.key === 'M') { toggleMute(); return; }
     tryStart(e);

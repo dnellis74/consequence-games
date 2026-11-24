@@ -1,0 +1,19 @@
+name = "consequence-scores"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+# Created with: npx wrangler d1 create consequence-scores
+# Paste the database_id it prints below.
+[[d1_databases]]
+binding = "DB"
+database_name = "consequence-scores"
+database_id = "REPLACE_WITH_DATABASE_ID"
+
+[vars]
+# Sites allowed to call the API (comma separated). Vercel previews and
+# localhost are allowed by pattern in src/index.js.
+ALLOWED_ORIGINS = "https://consequence.games,https://www.consequence.games"
+
+# Secrets (not in this file). Set with:
+#   npx wrangler secret put ADMIN_TOKEN   # lets you delete a score
+#   npx wrangler secret put IP_SALT       # any random string

@@ -7,7 +7,7 @@ compatibility_date = "2026-11-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "consequence-scores"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "81936fbc-58d8-4e09-a8de-54356182f2bd"
 
 [vars]
 # Sites allowed to call the API (comma separated). Vercel previews and

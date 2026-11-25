@@ -425,8 +425,7 @@
   const originClose = document.getElementById('originClose');
   const SHARE_URL = 'https://consequence.games/snail';
   // High score API (Cloudflare Worker in /worker). Empty string turns high scores off.
-  // TODO: set to the deployed worker URL, e.g. 'https://consequence-scores.<you>.workers.dev'
-  const SCORES_API = '';
+  const SCORES_API = 'https://consequence-scores.dnellis74.workers.dev';
 
   let W = 0, H = 0, dpr = 1, SCALE = 1;
   function resize() {

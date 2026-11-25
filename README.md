@@ -12,6 +12,7 @@ Static site, no build step. Deployed on Vercel.
 - `about.html` — about page (served at `/about`)
 - `blob/index.html` — BLOB, the first game (served at `/blob`)
 - `snail/index.html` — Immortal Snail Assassin (ISA), a variant of Blob (served at `/snail`). Add `?debug` to expose `window.__snail` for testing.
+- `worker/` — high score API on Cloudflare Workers + D1 (not deployed by Vercel; see `worker/README.md`). The game reads its URL from `SCORES_API` in `snail/index.html`.
 - `links.html` — old-school links page (served at `/links`)
 - `contact.html` — contact form (served at `/contact`)
 - `api/contact.js` — Vercel function that emails form submissions via Resend

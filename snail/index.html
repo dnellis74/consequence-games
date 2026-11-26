@@ -150,6 +150,18 @@
   #overlay.gameover #final {
     color: var(--mint);
   }
+  #scoresBtn {
+    pointer-events: auto; cursor: pointer;
+    margin: 0 auto 1.1rem;
+    border: 1px solid rgba(62, 240, 208, 0.28);
+    background: rgba(4, 16, 24, 0.55);
+    color: var(--teal);
+    font-family: "Gill Sans", "Trebuchet MS", sans-serif;
+    font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.6rem 1rem; min-height: 44px; border-radius: 2px;
+  }
+  #scoresBtn:hover, #scoresBtn:focus-visible { color: var(--cyan); border-color: rgba(62, 240, 208, 0.6); outline: none; }
+  #scores .board { margin: 0.2rem 0 1rem; }
   #share {
     pointer-events: auto;
     cursor: pointer;
@@ -173,7 +185,7 @@
     background: rgba(8, 28, 36, 0.8);
     outline: none;
   }
-  #board {
+  .board {
     pointer-events: auto;
     margin: 0 auto 1.1rem;
     font-family: "Gill Sans", "Trebuchet MS", sans-serif;
@@ -181,23 +193,23 @@
     font-size: 0.85rem;
     letter-spacing: 0.08em;
   }
-  #board .tabs { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 0.5rem; }
-  #board button, #board input {
+  .board .tabs { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 0.5rem; }
+  .board button, .board input {
     font-family: inherit; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
     border: 1px solid rgba(62, 240, 208, 0.35); background: rgba(4, 16, 24, 0.6);
     color: var(--teal); padding: 0.5rem 0.8rem; border-radius: 2px; min-height: 40px; cursor: pointer;
   }
-  #board button.on { color: var(--cyan); border-color: rgba(62, 240, 208, 0.8); }
-  #board ol { list-style: none; margin: 0 auto; padding: 0; max-width: 16rem; text-align: left; }
-  #board li { display: flex; gap: 0.6rem; padding: 0.12rem 0.2rem; }
-  #board li .r { width: 1.6rem; color: var(--muted); text-align: right; }
-  #board li .n { width: 3rem; letter-spacing: 0.2em; }
-  #board li .s { flex: 1; text-align: right; color: #d9c27a; }
-  #board li.me { color: var(--mint); text-shadow: 0 0 10px rgba(127, 255, 234, 0.6); }
-  #board .empty, #board .note { color: var(--muted); text-align: center; padding: 0.3rem; }
-  #board form { display: flex; justify-content: center; gap: 0.4rem; margin: 0.2rem 0 0.7rem; flex-wrap: wrap; }
-  #board .newhi { color: var(--mint); margin-bottom: 0.4rem; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; }
-  #board input { width: 5.2rem; text-align: center; color: var(--mint); font-size: 1rem; letter-spacing: 0.4em; cursor: text; }
+  .board button.on { color: var(--cyan); border-color: rgba(62, 240, 208, 0.8); }
+  .board ol { list-style: none; margin: 0 auto; padding: 0; max-width: 16rem; text-align: left; }
+  .board li { display: flex; gap: 0.6rem; padding: 0.12rem 0.2rem; }
+  .board li .r { width: 1.6rem; color: var(--muted); text-align: right; }
+  .board li .n { width: 3rem; letter-spacing: 0.2em; }
+  .board li .s { flex: 1; text-align: right; color: #d9c27a; }
+  .board li.me { color: var(--mint); text-shadow: 0 0 10px rgba(127, 255, 234, 0.6); }
+  .board .empty, .board .note { color: var(--muted); text-align: center; padding: 0.3rem; }
+  .board form { display: flex; justify-content: center; gap: 0.4rem; margin: 0.2rem 0 0.7rem; flex-wrap: wrap; }
+  .board .newhi { color: var(--mint); margin-bottom: 0.4rem; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; }
+  .board input { width: 5.2rem; text-align: center; color: var(--mint); font-size: 1rem; letter-spacing: 0.4em; cursor: text; }
   #home {
     position: fixed;
     bottom: 1.1rem;
@@ -242,7 +254,7 @@
   @media (max-width: 379px) {
     #originBtn { bottom: auto; top: 1.1rem; }
   }
-  #origin {
+  #origin, #scores {
     position: fixed; inset: 0; z-index: 5;
     display: none;
     align-items: center; justify-content: center;
@@ -251,10 +263,11 @@
     cursor: auto;
     padding: 1rem;
   }
-  #origin.open { display: flex; }
-  #origin .panel {
+  #origin.open, #scores.open { display: flex; }
+  #origin .panel, #scores .panel {
     max-width: 34rem; width: 100%;
-    max-height: 88vh; overflow-y: auto;
+    max-height: 88vh; max-height: 88dvh; overflow-y: auto;
+    touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: rgba(6, 16, 24, 0.96);
     border: 1px solid rgba(62, 240, 208, 0.3);
     border-radius: 4px;
@@ -265,7 +278,7 @@
     font-size: 1rem;
     text-align: left;
   }
-  #origin h2 {
+  #origin h2, #scores h2 {
     font-size: 1.5rem; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--cyan); margin-bottom: 0.9rem;
     text-shadow: 0 0 14px rgba(62, 240, 208, 0.45);
@@ -273,7 +286,7 @@
   #origin p { margin-bottom: 0.85rem; color: rgba(212, 255, 246, 0.88); }
   #origin .links { line-height: 1.9; font-size: 0.92rem; }
   #origin .links a { color: var(--teal); }
-  #origin .close {
+  #origin .close, #scores .close {
     cursor: pointer;
     margin-top: 0.4rem;
     border: 1px solid rgba(62, 240, 208, 0.45);
@@ -283,7 +296,7 @@
     font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
     padding: 0.7rem 1rem; min-height: 44px; border-radius: 2px;
   }
-  #origin .close:hover, #origin .close:focus-visible { color: var(--mint); border-color: rgba(127,255,234,.8); outline: none; }
+  #origin .close:hover, #origin .close:focus-visible, #scores .close:hover, #scores .close:focus-visible { color: var(--mint); border-color: rgba(127,255,234,.8); outline: none; }
   #mute {
     position: fixed;
     bottom: 1.1rem;
@@ -327,10 +340,11 @@
   <div id="overlay" class="visible">
     <div id="brand">IMMORTAL<br>SNAIL<br>ASSASSIN<span class="isa">ISA</span></div>
     <p id="msg">A snail is after you. Tap to drop waypoints and your blob will follow them. Loot makes you richer, and heavier.</p>
-    <div id="hint">Tap to start</div>
     <div id="final" style="display:none"></div>
+    <div id="board" class="board" style="display:none"></div>
     <button type="button" id="share" style="display:none">Challenge friend</button>
-    <div id="board" style="display:none"></div>
+    <div><button type="button" id="scoresBtn" style="display:none">High scores</button></div>
+    <div id="hint">Tap to start</div>
   </div>
 </div>
 <div id="origin" role="dialog" aria-modal="true" aria-labelledby="originTitle">
@@ -348,6 +362,13 @@
     </p>
     <p style="color: var(--muted); font-size: 0.9rem">David Nellis, <a href="/" style="color: var(--teal)">consequence.games</a></p>
     <button type="button" class="close" id="originClose">Back to the snail</button>
+  </div>
+</div>
+<div id="scores" role="dialog" aria-modal="true" aria-labelledby="scoresTitle">
+  <div class="panel">
+    <h2 id="scoresTitle">High scores</h2>
+    <div id="scoresBody" class="board"></div>
+    <button type="button" class="close" id="scoresClose">Back to the snail</button>
   </div>
 </div>
 <button type="button" id="originBtn">Spark</button>
@@ -452,7 +473,10 @@
     pointer.on = true;
   }
   window.addEventListener('pointermove', setPointer, { passive: true });
-  window.addEventListener('touchmove', (e) => { e.preventDefault(); setPointer(e); }, { passive: false });
+  window.addEventListener('touchmove', (e) => {
+    if (e.target && e.target.closest && e.target.closest('.panel')) return;  // let Spark / High scores scroll
+    e.preventDefault(); setPointer(e);
+  }, { passive: false });
   window.addEventListener('touchstart', (e) => { setPointer(e); }, { passive: true });
 
   // ── Audio ─────────────────────────────────────────────────────
@@ -714,6 +738,8 @@
     finalEl.style.display = 'none';
     shareBtn.style.display = 'none';
     boardEl.style.display = 'none'; boardEl.innerHTML = '';
+    scoresBtn.style.display = 'none';
+    runId++; entryOpen = false;
     homeEl.style.display = 'none';
     originBtn.style.display = 'none';
     brandEl.style.display = '';
@@ -733,11 +759,10 @@
     finalEl.style.display = 'block';
     finalEl.textContent = `${fmtMoney(totalMoney())} · ${elapsed.toFixed(1)}s`;
     shareBtn.textContent = 'Challenge friend';
-    shareBtn.style.display = 'inline-block';
     homeEl.style.display = '';
     originBtn.style.display = '';
-    hintEl.textContent = 'Tap anywhere else to retry';
-    showBoard();
+    // step 1: high score entry (if the run qualifies); step 2: share / retry
+    if (SCORES_API) checkHighScore(); else showResults();
   }
 
   // share
@@ -775,8 +800,15 @@
   shareBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 
   // ── High scores ───────────────────────────────────────────────
+  // Game over is two steps. Step 1: if the run makes a top 10, ask for
+  // initials (nothing else on screen, taps don't restart). Step 2: the
+  // usual result screen with Challenge friend and tap to retry.
   const boardEl = document.getElementById('board');
-  let boardTab = 'allTime', boardData = null, myId = null, runId = 0;
+  const scoresEl = document.getElementById('scores');
+  const scoresBody = document.getElementById('scoresBody');
+  const scoresBtn = document.getElementById('scoresBtn');
+  const scoresClose = document.getElementById('scoresClose');
+  let boardTab = 'allTime', myId = null, runId = 0, entryOpen = false;
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function loadInitials() { try { return localStorage.getItem('isa-initials') || ''; } catch (err) { return ''; } }
   function saveInitials(v) { try { localStorage.setItem('isa-initials', v); } catch (err) { /* private mode */ } }
@@ -786,95 +818,126 @@
       return list.length < 10 || score > list[list.length - 1].score;
     });
   }
-  function renderList() {
-    const list = (boardData && boardData[boardTab]) || [];
+  async function fetchBoard() {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 5000);
+    try {
+      const r = await fetch(`${SCORES_API}/scores?game=snail`, { signal: ctrl.signal });
+      if (!r.ok) throw new Error(r.status);
+      return await r.json();
+    } finally { clearTimeout(t); }
+  }
+  function listHtml(data) {
+    const list = (data && data[boardTab]) || [];
     if (!list.length) return '<div class="empty">No scores yet</div>';
     return '<ol>' + list.map((r, i) =>
       `<li class="${r.id === myId ? 'me' : ''}"><span class="r">${i + 1}</span><span class="n">${esc(r.name)}</span><span class="s">${fmtMoney(r.score)}</span></li>`
     ).join('') + '</ol>';
   }
-  function renderBoard(headHtml) {
-    boardEl.innerHTML = `<div class="head">${headHtml || ''}</div>` +
-      '<div class="tabs"><button type="button" data-tab="allTime">All time</button>' +
+  function renderBoardInto(el, data) {
+    el._data = data;
+    el.innerHTML = '<div class="tabs"><button type="button" data-tab="allTime">All time</button>' +
       '<button type="button" data-tab="recent">Past 24 hours</button></div><div class="list"></div>';
-    renderTab();
+    renderTab(el);
   }
-  function renderTab() {
-    boardEl.querySelectorAll('button[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === boardTab));
-    boardEl.querySelector('.list').innerHTML = renderList();
+  function renderTab(el) {
+    el.querySelectorAll('button[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === boardTab));
+    el.querySelector('.list').innerHTML = listHtml(el._data);
   }
-  boardEl.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-tab]');
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.board button[data-tab]');
     if (!b) return;
     boardTab = b.dataset.tab;
-    renderTab();
+    renderTab(b.closest('.board'));
   });
-  function wireForm() {
+
+  // High scores dialog (start screen and result screen)
+  async function openScores(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    scoresEl.classList.add('open');
+    scoresClose.focus({ preventScroll: true });
+    scoresBody.innerHTML = '<div class="note">Loading…</div>';
+    try { renderBoardInto(scoresBody, await fetchBoard()); }
+    catch (err) { scoresBody.innerHTML = '<div class="note">High scores are unavailable right now</div>'; }
+  }
+  function closeScores(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    scoresEl.classList.remove('open'); scoresBtn.focus();
+  }
+  scoresBtn.addEventListener('click', openScores);
+  scoresClose.addEventListener('click', closeScores);
+  scoresEl.addEventListener('click', (e) => { if (e.target === scoresEl) closeScores(e); });
+  if (SCORES_API) scoresBtn.style.display = '';
+
+  // Step 2
+  function showResults(note) {
+    entryOpen = false;
+    boardEl.innerHTML = note ? `<div class="newhi">${esc(note)}</div>` : '';
+    boardEl.style.display = note ? 'block' : 'none';
+    shareBtn.style.display = 'inline-block';
+    if (SCORES_API) scoresBtn.style.display = '';
+    hintEl.textContent = 'Tap anywhere else to retry';
+    hintEl.style.display = '';
+  }
+  // Step 1
+  async function checkHighScore() {
+    const myRun = ++runId;
+    entryOpen = true;
+    shareBtn.style.display = 'none';
+    scoresBtn.style.display = 'none';
+    hintEl.style.display = 'none';
+    boardEl.style.display = 'block';
+    boardEl.innerHTML = '<div class="note">Checking high scores…</div>';
+    let data;
+    try { data = await fetchBoard(); }
+    catch (err) { if (myRun === runId) showResults('High scores are unavailable right now'); return; }
+    if (myRun !== runId) return;
+    if (!qualifies(Math.floor(totalMoney()), data)) { showResults(); return; }
+    boardEl.innerHTML = '<div class="newhi">High score! Your initials</div>' +
+      '<form><input name="n" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Initials">' +
+      '<button type="submit">Save</button><button type="button" data-skip>Skip</button></form>';
     const form = boardEl.querySelector('form');
-    if (!form) return;
     const input = form.querySelector('input');
     input.value = loadInitials();
     input.addEventListener('input', () => { input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3); });
-    form.addEventListener('submit', submitScore);
-    form.querySelector('[data-skip]').addEventListener('click', () => { boardEl.querySelector('.head').innerHTML = ''; });
+    form.addEventListener('submit', (e) => submitScore(e, myRun));
+    form.querySelector('[data-skip]').addEventListener('click', () => showResults());
   }
-  const FORM_HTML = '<div class="newhi">High score! Your initials</div>' +
-    '<form><input name="n" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Initials">' +
-    '<button type="submit">Save</button><button type="button" data-skip>Skip</button></form>';
-  async function showBoard() {
-    if (!SCORES_API) return;
-    const myRun = ++runId;
-    myId = null;
-    boardEl.style.display = 'block';
-    boardEl.innerHTML = '<div class="note">Loading high scores…</div>';
-    try {
-      const r = await fetch(`${SCORES_API}/scores?game=snail`);
-      if (!r.ok) throw new Error(r.status);
-      const data = await r.json();
-      if (myRun !== runId) return;
-      boardData = data;
-      if (qualifies(Math.floor(totalMoney()), data)) { renderBoard(FORM_HTML); wireForm(); }
-      else renderBoard();
-    } catch (err) {
-      if (myRun === runId) boardEl.innerHTML = '<div class="note">High scores are unavailable right now</div>';
-    }
-  }
-  async function submitScore(e) {
+  async function submitScore(e, myRun) {
     e.preventDefault();
     const form = e.currentTarget;
-    const name = form.querySelector('input').value;
-    if (!/^[A-Z]{3}$/.test(name)) { form.querySelector('input').focus(); return; }
-    saveInitials(name);
-    const myRun = runId;
+    const input = form.querySelector('input');
+    const btn = form.querySelector('button[type=submit]');
+    const label = boardEl.querySelector('.newhi');
+    if (!/^[A-Z]{3}$/.test(input.value)) { label.textContent = 'Three letters, please'; input.focus(); return; }
+    saveInitials(input.value);
     const counts = {};
     for (const k in LOOT) counts[k] = countOf(k);
-    form.querySelector('button[type=submit]').disabled = true;
+    btn.disabled = true;
     try {
       const r = await fetch(`${SCORES_API}/scores`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ game: 'snail', name, elapsed, detail: { counts } }),
+        body: JSON.stringify({ game: 'snail', name: input.value, elapsed, detail: { counts } }),
       });
       const data = await r.json();
       if (myRun !== runId) return;
-      if (!r.ok) {
-        form.querySelector('button[type=submit]').disabled = false;
-        form.previousElementSibling.textContent = data.error || 'Could not save';
-        return;
-      }
-      boardData = data; myId = data.id;
-      renderBoard(`<div class="newhi">Saved. You're #${data.rank} all time</div>`);
+      if (!r.ok) { btn.disabled = false; label.textContent = data.error || 'Could not save'; return; }
+      myId = data.id;
+      showResults(`Saved. You're #${data.rank} all time`);
     } catch (err) {
       if (myRun !== runId) return;
-      form.querySelector('button[type=submit]').disabled = false;
-      form.previousElementSibling.textContent = 'Could not save, try again';
+      btn.disabled = false;
+      label.textContent = 'Could not save, try again';
     }
   }
 
   // origin panel
   function openOrigin(e) {
     if (e) { e.stopPropagation(); e.preventDefault(); }
-    originEl.classList.add('open'); originClose.focus();
+    originEl.classList.add('open');
+    originEl.querySelector('.panel').scrollTop = 0;
+    originClose.focus({ preventScroll: true });
   }
   function closeOrigin(e) {
     if (e) { e.stopPropagation(); e.preventDefault(); }
@@ -892,8 +955,9 @@
   }
 
   function tryStart(e) {
-    if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn, #board')) return;
-    if (originEl.classList.contains('open')) return;
+    if (e && e.target && e.target.closest && e.target.closest('#mute, #share, #home, #origin, #originBtn, #board, #scores, #scoresBtn')) return;
+    if (originEl.classList.contains('open') || scoresEl.classList.contains('open')) return;
+    if (entryOpen) return;  // game over step 1: finish or skip the high score first
     if (e && e.type === 'keydown') {
       if (e.key === 'Escape') return;
       if (e.target && e.target.tagName === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
@@ -909,6 +973,7 @@
     if (e.repeat) return;
     if (e.target && (e.target.tagName === 'INPUT' || e.target.closest && e.target.closest('#board'))) return;
     if (e.key === 'Escape' && originEl.classList.contains('open')) { closeOrigin(e); return; }
+    if (e.key === 'Escape' && scoresEl.classList.contains('open')) { closeScores(e); return; }
     if (e.key === 'm' || e.key === 'M') { toggleMute(); return; }
     tryStart(e);
   });
